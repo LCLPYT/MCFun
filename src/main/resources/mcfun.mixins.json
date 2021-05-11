@@ -4,6 +4,7 @@
   "package": "work.lclpnet.mcfun.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "MixinEntity"
   ],
   "client": [
     "ExampleMixin"
