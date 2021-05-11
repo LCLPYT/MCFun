@@ -40,7 +40,7 @@ public abstract class CommandBase {
 
     public CommandBase addAlias(String alias) {
         Objects.requireNonNull(alias);
-        if (aliases == null) aliases = new ArrayList<>();
+        if(aliases == null) aliases = new ArrayList<>();
         aliases.add(alias);
         return this;
     }

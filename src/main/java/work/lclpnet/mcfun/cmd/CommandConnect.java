@@ -37,12 +37,12 @@ public class CommandConnect extends CommandBase {
         Entity entity1 = EntityArgumentType.getEntity(ctx, "entity1"),
                 entity2 = EntityArgumentType.getEntity(ctx, "entity2");
 
-        if (entity1.equals(entity2)) throw ENTITIES_EQUAL.create();
+        if(entity1.equals(entity2)) throw ENTITIES_EQUAL.create();
 
         IRopeConnectable conn1 = IRopeConnectable.getFrom(entity1);
         IRopeConnectable conn2 = IRopeConnectable.getFrom(entity2);
 
-        if (conn1.isConnectedTo(entity2) || conn2.isConnectedTo(entity1)) throw ENTITIES_ALREADY_LINKED.create();
+        if(conn1.isConnectedTo(entity2) || conn2.isConnectedTo(entity1)) throw ENTITIES_ALREADY_LINKED.create();
 
         Rope rope1 = new Rope(entity2);
         conn1.addRopeConnection(rope1);

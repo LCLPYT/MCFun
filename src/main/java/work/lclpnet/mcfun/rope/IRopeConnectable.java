@@ -20,7 +20,7 @@ public interface IRopeConnectable {
         Objects.requireNonNull(entity);
 
         Set<Rope> connections = getRopeConnections();
-        if (connections == null) return false;
+        if(connections == null) return false;
 
         return connections.stream().anyMatch(rope -> rope.getConnectedTo().equals(entity));
     }

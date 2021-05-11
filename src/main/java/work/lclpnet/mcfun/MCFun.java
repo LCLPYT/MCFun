@@ -9,14 +9,14 @@ import work.lclpnet.mcfun.rope.IRopeConnectable;
 
 public class MCFun implements ModInitializer {
 
-    @Override
-    public void onInitialize() {
-        System.out.println("Hello from fabric");
+	@Override
+	public void onInitialize() {
+		System.out.println("Hello from fabric");
 
-        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> MCCommands.registerCommands(dispatcher));
-        AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            System.out.printf("Connected to: %s\n", IRopeConnectable.getFrom(entity).getRopeConnections());
-            return ActionResult.PASS;
-        });
-    }
+		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> MCCommands.registerCommands(dispatcher));
+		AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
+			System.out.printf("Connected to: %s\n", IRopeConnectable.getFrom(entity).getRopeConnections());
+			return ActionResult.PASS;
+		});
+	}
 }
