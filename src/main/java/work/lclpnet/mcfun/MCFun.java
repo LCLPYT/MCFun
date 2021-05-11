@@ -1,14 +1,19 @@
 package work.lclpnet.mcfun;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.minecraft.server.command.CommandManager;
 
 public class MCFun implements ModInitializer {
+
 	@Override
 	public void onInitialize() {
-		// This code runs as soon as Minecraft is in a mod-load-ready state.
-		// However, some things (like resources) may still be uninitialized.
-		// Proceed with mild caution.
-
-		System.out.println("Hello Fabric world!");
+		System.out.println("Hello from fabric");
+		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
+			dispatcher.register(CommandManager.literal("connect").executes(ctx -> {
+				System.out.println("You created a Connection :)");
+				return 0;
+			}));
+		});
 	}
 }
