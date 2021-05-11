@@ -31,7 +31,7 @@ public class MixinEntity implements IRopeConnectable {
     @Override
     public void removeRopeConnection(Rope rope) {
         Objects.requireNonNull(rope);
-        if(ropes == null) return;
+        if (ropes == null) return;
         this.ropes.remove(rope);
     }
 }
