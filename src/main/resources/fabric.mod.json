@@ -1,37 +1,35 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "mcfun",
   "version": "${version}",
 
-  "name": "Example Mod",
+  "name": "MCFun",
   "description": "This is an example description! Tell everyone what your mod is about!",
   "authors": [
-    "Me!"
+    "MisoMC",
+    "DerBerliner_",
+    "LCLP"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://lclpnet.work/"
   },
 
-  "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "license": "MIT",
+  "icon": "assets/mcfun/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "work.lclpnet.mcfun.MCFun"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "mcfun.mixins.json"
   ],
 
   "depends": {
     "fabricloader": ">=0.7.4",
     "fabric": "*",
     "minecraft": "1.16.x"
-  },
-  "suggests": {
-    "another-mod": "*"
   }
 }
