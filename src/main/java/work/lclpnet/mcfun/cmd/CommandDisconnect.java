@@ -13,6 +13,7 @@ import net.minecraft.util.Formatting;
 import work.lclpnet.mcfun.rope.IRopeConnectable;
 import work.lclpnet.mcfun.rope.Rope;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static net.minecraft.server.command.CommandManager.argument;
@@ -46,13 +47,18 @@ public class CommandDisconnect extends CommandBase {
 
         if(!conn1.isConnectedTo(entity2) && !conn2.isConnectedTo(entity1)) throw ENTITIES_NOT_LINKED.create();
 
-        Optional<Rope> first = conn1.getRopeConnections().stream().findFirst();
-        Optional<Rope> first1 = conn2.getRopeConnections().stream().findFirst();
+        Optional<Rope> e1toe2 = Objects.requireNonNull(conn1.getRopeConnections()).stream().filter(rope -> rope.getConnectedTo().equals(entity2)).findFirst();
+        Optional<Rope> e2toe1 = Objects.requireNonNull(conn2.getRopeConnections()).stream().filter(rope -> rope.getConnectedTo().equals(entity1)).findFirst();
 
-        Rope fst = first.get();
-        conn1.removeRopeConnection((Rope) fst);
-        Rope fst1 = first1.get();
-        conn2.removeRopeConnection((Rope) fst1);
+        if (e1toe2.isPresent()) {
+            Rope rope = e1toe2.get();
+            conn1.removeRopeConnection(rope);
+        }
+
+        if (e2toe1.isPresent()) {
+            Rope rope2 = e2toe1.get();
+            conn2.removeRopeConnection(rope2);
+        }
 
         MutableText feedback = new TranslatableText("commands.disconnect.entities.disconnected", entity1.getName(), entity2.getName()).formatted(Formatting.RED);
         ctx.getSource().sendFeedback(feedback, true);
