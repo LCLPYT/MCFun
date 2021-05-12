@@ -11,6 +11,7 @@ public class MCCommands {
     public static void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher) {
         new CommandEcho().register(dispatcher);
         new CommandConnect().register(dispatcher);
+        new CommandDisconnect().register(dispatcher);
     }
 
     public static boolean permLevel1(ServerCommandSource cs) {

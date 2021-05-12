@@ -13,15 +13,17 @@ import net.minecraft.util.Formatting;
 import work.lclpnet.mcfun.rope.IRopeConnectable;
 import work.lclpnet.mcfun.rope.Rope;
 
+import java.util.Optional;
+
 import static net.minecraft.server.command.CommandManager.argument;
 
-public class CommandConnect extends CommandBase {
+public class CommandDisconnect extends CommandBase {
 
-    private static final SimpleCommandExceptionType ENTITIES_EQUAL = new SimpleCommandExceptionType(new TranslatableText("commands.connect.entities.equal"));
-    private static final SimpleCommandExceptionType ENTITIES_ALREADY_LINKED = new SimpleCommandExceptionType(new TranslatableText("commands.connect.entities.already-linked"));
+    private static final SimpleCommandExceptionType ENTITIES_EQUAL = new SimpleCommandExceptionType(new TranslatableText("commands.disconnect.entities.equal"));
+    private static final SimpleCommandExceptionType ENTITIES_NOT_LINKED = new SimpleCommandExceptionType(new TranslatableText("commands.disconnect.entities.not-linked"));
 
-    public CommandConnect() {
-        super("connect");
+    public CommandDisconnect() {
+        super("disconnect");
     }
 
     @Override
@@ -30,10 +32,10 @@ public class CommandConnect extends CommandBase {
                 .requires(MCCommands::permLevel2)
                 .then(argument("entity1", EntityArgumentType.entity())
                         .then(argument("entity2", EntityArgumentType.entity())
-                                .executes(CommandConnect::connect)));
+                                .executes(CommandDisconnect::disconnect)));
     }
 
-    private static int connect(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+    private static int disconnect(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         Entity entity1 = EntityArgumentType.getEntity(ctx, "entity1"),
                 entity2 = EntityArgumentType.getEntity(ctx, "entity2");
 
@@ -42,15 +44,17 @@ public class CommandConnect extends CommandBase {
         IRopeConnectable conn1 = IRopeConnectable.getFrom(entity1);
         IRopeConnectable conn2 = IRopeConnectable.getFrom(entity2);
 
-        if(conn1.isConnectedTo(entity2) || conn2.isConnectedTo(entity1)) throw ENTITIES_ALREADY_LINKED.create();
+        if(!conn1.isConnectedTo(entity2) && !conn2.isConnectedTo(entity1)) throw ENTITIES_NOT_LINKED.create();
 
-        Rope rope1 = new Rope(entity2);
-        conn1.addRopeConnection(rope1);
+        Optional<Rope> first = conn1.getRopeConnections().stream().findFirst();
+        Optional<Rope> first1 = conn2.getRopeConnections().stream().findFirst();
 
-        Rope rope2 = new Rope(entity1);
-        conn2.addRopeConnection(rope2);
+        Rope fst = first.get();
+        conn1.removeRopeConnection((Rope) fst);
+        Rope fst1 = first1.get();
+        conn2.removeRopeConnection((Rope) fst1);
 
-        MutableText feedback = new TranslatableText("commands.connect.entities.connected", entity1.getName(), entity2.getName()).formatted(Formatting.GREEN);
+        MutableText feedback = new TranslatableText("commands.disconnect.entities.disconnected", entity1.getName(), entity2.getName()).formatted(Formatting.RED);
         ctx.getSource().sendFeedback(feedback, true);
 
         return 0;
