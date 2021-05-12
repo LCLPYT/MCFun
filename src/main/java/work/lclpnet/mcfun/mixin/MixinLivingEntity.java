@@ -1,8 +1,11 @@
 package work.lclpnet.mcfun.mixin;
 
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import work.lclpnet.mcfun.networking.MCNetworking;
 import work.lclpnet.mcfun.rope.IRopeConnectable;
 import work.lclpnet.mcfun.rope.Rope;
 

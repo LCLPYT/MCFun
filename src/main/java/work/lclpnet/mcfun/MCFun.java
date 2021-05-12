@@ -26,5 +26,4 @@ public class MCFun implements ModInitializer {
 			return ActionResult.PASS;
 		});
 	}
-
 }
