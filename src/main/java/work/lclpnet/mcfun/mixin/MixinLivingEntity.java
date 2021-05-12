@@ -30,11 +30,11 @@ public class MixinLivingEntity implements IRopeConnectable {
         if (this.ropes == null) this.ropes = new HashSet<>();
         this.ropes.add(rope);
 
-        /*if(sendPacket) {
+        if(sendPacket) {
             LivingEntity le = (LivingEntity) (Object) this;
             for(ServerPlayerEntity player : PlayerLookup.tracking(le))
                 MCNetworking.sendAddRopePacket(player, le, rope.getConnectedTo());
-        }*/
+        }
     }
 
     @Override

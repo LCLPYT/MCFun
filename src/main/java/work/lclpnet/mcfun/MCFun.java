@@ -13,7 +13,7 @@ public class MCFun implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		System.out.println("Hello from fabric");
+		System.out.println("Hello from Miso no");
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> MCCommands.registerCommands(dispatcher));
 
