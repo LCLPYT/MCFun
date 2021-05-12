@@ -2,5 +2,7 @@
   "commands.connect.entities.equal": "Please choose two different entities.",
   "commands.connect.entities.already-linked": "Those entities are already linked.",
   "commands.connect.entities.connected": "Connected %s with %s.",
-  "commands.connect.entities.not-living": "Non LivingEntity: %s"
+  "commands.disconnect.entities.disconnected": "Disconnected %s from %s",
+  "commands.disconnect.entities.equal": "Please choose two different entities.",
+  "commands.disconnect.entities.not-linked": "There is no connection between the two selected entities."
 }
