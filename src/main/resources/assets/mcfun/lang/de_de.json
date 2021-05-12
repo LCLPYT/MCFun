@@ -1,5 +1,6 @@
 {
   "commands.connect.entities.equal": "Bitte suche zwei unterschiedliche Entities aus.",
   "commands.connect.entities.already-linked": "Diese beiden Entities sind bereits verbunden.",
-  "commands.connect.entities.connected": "%s wurde mit %s verbunden."
+  "commands.connect.entities.connected": "%s wurde mit %s verbunden.",
+  "commands.connect.entities.not-living": "Kein LivingEntity: %s"
 }

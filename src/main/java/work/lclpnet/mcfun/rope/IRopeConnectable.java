@@ -1,6 +1,6 @@
 package work.lclpnet.mcfun.rope;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -12,11 +12,11 @@ public interface IRopeConnectable {
     @Nullable
     Set<Rope> getRopeConnections();
 
-    void addRopeConnection(Rope rope);
+    void addRopeConnection(Rope rope, boolean sendPacket);
 
-    void removeRopeConnection(Rope rope);
+    void removeRopeConnection(Rope rope, boolean sendPacket);
 
-    default boolean isConnectedTo(Entity entity) {
+    default boolean isConnectedTo(LivingEntity entity) {
         Objects.requireNonNull(entity);
 
         Set<Rope> connections = getRopeConnections();
@@ -26,8 +26,7 @@ public interface IRopeConnectable {
     }
 
     @Nonnull
-    static IRopeConnectable getFrom(Entity entity) {
+    static IRopeConnectable getFrom(LivingEntity entity) {
         return (IRopeConnectable) entity;
     }
-
 }

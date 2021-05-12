@@ -1,5 +1,6 @@
 {
   "commands.connect.entities.equal": "Please choose two different entities.",
   "commands.connect.entities.already-linked": "Those entities are already linked.",
-  "commands.connect.entities.connected": "Connected %s with %s."
+  "commands.connect.entities.connected": "Connected %s with %s.",
+  "commands.connect.entities.not-living": "Non LivingEntity: %s"
 }

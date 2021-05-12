@@ -4,10 +4,11 @@
   "package": "work.lclpnet.mcfun.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MixinEntity"
+    "MixinLivingEntity"
   ],
   "client": [
-    "ExampleMixin"
+    "ExampleMixin",
+    "MixinEntityRenderer"
   ],
   "injectors": {
     "defaultRequire": 1
