@@ -58,7 +58,7 @@ public abstract class MixinEntityRenderer {
 
     @Inject(
             method = "render(Lnet/minecraft/entity/Entity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V",
-            at = @At("TAIL")
+            at = @At("RETURN")
     )
     public void onRender(Entity entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
         if(!(entity instanceof LivingEntity)) return;
