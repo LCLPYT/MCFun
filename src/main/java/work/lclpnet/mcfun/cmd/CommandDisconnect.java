@@ -14,8 +14,8 @@ import net.minecraft.util.Formatting;
 import work.lclpnet.mcfun.rope.IRopeConnectable;
 import work.lclpnet.mcfun.rope.Rope;
 
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import static net.minecraft.server.command.CommandManager.argument;
 
@@ -38,38 +38,37 @@ public class CommandDisconnect extends CommandBase {
     }
 
     private static int disconnect(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
-        Entity entity1 = EntityArgumentType.getEntity(ctx, "entity1"),
-                entity2 = EntityArgumentType.getEntity(ctx, "entity2");
+        Entity firstEntity = EntityArgumentType.getEntity(ctx, "entity1"),
+                secondEntity = EntityArgumentType.getEntity(ctx, "entity2");
 
-        if(entity1.equals(entity2)) throw ENTITIES_EQUAL.create();
+        if(firstEntity.equals(secondEntity)) throw ENTITIES_EQUAL.create();
 
-        if(!(entity1 instanceof LivingEntity))
-            throw new SimpleCommandExceptionType(new TranslatableText("commands.connect.entities.not-living", entity1.getEntityName())).create();
-        if(!(entity2 instanceof LivingEntity))
-            throw new SimpleCommandExceptionType(new TranslatableText("commands.connect.entities.not-living", entity2.getEntityName())).create();
+        if(!(firstEntity instanceof LivingEntity))
+            throw new SimpleCommandExceptionType(new TranslatableText("commands.connect.entities.not-living", firstEntity.getEntityName())).create();
+        if(!(secondEntity instanceof LivingEntity))
+            throw new SimpleCommandExceptionType(new TranslatableText("commands.connect.entities.not-living", secondEntity.getEntityName())).create();
 
-        LivingEntity le1 = (LivingEntity) entity1;
-        LivingEntity le2 = (LivingEntity) entity2;
+        LivingEntity first = (LivingEntity) firstEntity;
+        LivingEntity second = (LivingEntity) secondEntity;
+        IRopeConnectable firstRopeConnectable = IRopeConnectable.getFrom(first);
+        IRopeConnectable secondRopeConnectable = IRopeConnectable.getFrom(second);
 
-        IRopeConnectable conn1 = IRopeConnectable.getFrom(le1);
-        IRopeConnectable conn2 = IRopeConnectable.getFrom(le2);
+        if(!firstRopeConnectable.isConnectedTo(second) && !secondRopeConnectable.isConnectedTo(first)) throw ENTITIES_NOT_LINKED.create();
 
-        if(!conn1.isConnectedTo(le2) && !conn2.isConnectedTo(le1)) throw ENTITIES_NOT_LINKED.create();
+        Set<Rope> firstConnections = firstRopeConnectable.getRopeConnections();
+        Set<Rope> secondConnections = secondRopeConnectable.getRopeConnections();
 
-        Optional<Rope> e1toe2 = Objects.requireNonNull(conn1.getRopeConnections()).stream().filter(rope -> rope.getConnectedTo().equals(entity2)).findFirst();
-        Optional<Rope> e2toe1 = Objects.requireNonNull(conn2.getRopeConnections()).stream().filter(rope -> rope.getConnectedTo().equals(entity1)).findFirst();
-
-        if (e1toe2.isPresent()) {
-            Rope rope = e1toe2.get();
-            conn1.removeRopeConnection(rope, true);
+        if(firstConnections == null || secondConnections == null) {
+            System.err.println("Error connections are null");
+            return 0;
         }
 
-        if (e2toe1.isPresent()) {
-            Rope rope2 = e2toe1.get();
-            conn2.removeRopeConnection(rope2, true);
-        }
+        Optional<Rope> firstRope = firstConnections.stream().filter(r -> r.getConnectedTo().equals(second)).findFirst();
+        Optional<Rope> secondRope = secondConnections.stream().filter(r -> r.getConnectedTo().equals(first)).findFirst();
+        firstRope.ifPresent(rope -> firstRopeConnectable.removeRopeConnection(rope, true));
+        secondRope.ifPresent(rope -> secondRopeConnectable.removeRopeConnection(rope, true));
 
-        MutableText feedback = new TranslatableText("commands.disconnect.entities.disconnected", entity1.getName(), entity2.getName()).formatted(Formatting.RED);
+        MutableText feedback = new TranslatableText("commands.disconnect.entities.disconnected", firstEntity.getName(), secondEntity.getName()).formatted(Formatting.RED);
         ctx.getSource().sendFeedback(feedback, true);
 
         return 0;

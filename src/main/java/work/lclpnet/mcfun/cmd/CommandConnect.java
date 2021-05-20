@@ -36,31 +36,27 @@ public class CommandConnect extends CommandBase {
     }
 
     private static int connect(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
-        Entity entity1 = EntityArgumentType.getEntity(ctx, "entity1"),
-                entity2 = EntityArgumentType.getEntity(ctx, "entity2");
+        Entity firstEntity = EntityArgumentType.getEntity(ctx, "entity1"),
+                secondEntity = EntityArgumentType.getEntity(ctx, "entity2");
 
-        if(entity1.equals(entity2)) throw ENTITIES_EQUAL.create();
+        if(firstEntity.equals(secondEntity)) throw ENTITIES_EQUAL.create();
 
-        if(!(entity1 instanceof LivingEntity))
-            throw new SimpleCommandExceptionType(new TranslatableText("commands.connect.entities.not-living", entity1.getEntityName())).create();
-        if(!(entity2 instanceof LivingEntity))
-            throw new SimpleCommandExceptionType(new TranslatableText("commands.connect.entities.not-living", entity2.getEntityName())).create();
+        if(!(firstEntity instanceof LivingEntity))
+            throw new SimpleCommandExceptionType(new TranslatableText("commands.connect.entities.not-living", firstEntity.getEntityName())).create();
+        if(!(secondEntity instanceof LivingEntity))
+            throw new SimpleCommandExceptionType(new TranslatableText("commands.connect.entities.not-living", secondEntity.getEntityName())).create();
 
-        LivingEntity le1 = (LivingEntity) entity1;
-        LivingEntity le2 = (LivingEntity) entity2;
+        LivingEntity first = (LivingEntity) firstEntity;
+        LivingEntity second = (LivingEntity) secondEntity;
+        IRopeConnectable firstRopeConnectable = IRopeConnectable.getFrom(first);
+        IRopeConnectable secondRopeConnectable = IRopeConnectable.getFrom(second);
 
-        IRopeConnectable conn1 = IRopeConnectable.getFrom(le1);
-        IRopeConnectable conn2 = IRopeConnectable.getFrom(le2);
+        if(firstRopeConnectable.isConnectedTo(second) || secondRopeConnectable.isConnectedTo(first)) throw ENTITIES_ALREADY_LINKED.create();
 
-        if(conn1.isConnectedTo(le2) || conn2.isConnectedTo(le1)) throw ENTITIES_ALREADY_LINKED.create();
+        firstRopeConnectable.addRopeConnection(new Rope(second), true);
+        secondRopeConnectable.addRopeConnection(new Rope(first), true);
 
-        Rope rope1 = new Rope(le1);
-        Rope rope2 = new Rope(le2);
-
-        conn1.addRopeConnection(rope1, true);
-        conn2.addRopeConnection(rope2, true);
-
-        MutableText feedback = new TranslatableText("commands.connect.entities.connected", entity1.getName(), entity2.getName()).formatted(Formatting.GREEN);
+        MutableText feedback = new TranslatableText("commands.connect.entities.connected", firstEntity.getName(), secondEntity.getName()).formatted(Formatting.GREEN);
         ctx.getSource().sendFeedback(feedback, true);
 
         return 0;

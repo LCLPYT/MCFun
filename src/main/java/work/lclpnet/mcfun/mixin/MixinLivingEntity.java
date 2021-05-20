@@ -1,10 +1,11 @@
 package work.lclpnet.mcfun.mixin;
 
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import work.lclpnet.mcfun.networking.MCNetworking;
-import work.lclpnet.mcfun.networking.packet.PacketAddRopeConnection;
+import work.lclpnet.mcfun.networking.packet.PacketUpdateRopeConnection;
 import work.lclpnet.mcfun.rope.IRopeConnectable;
 import work.lclpnet.mcfun.rope.Rope;
 
@@ -31,7 +32,9 @@ public class MixinLivingEntity implements IRopeConnectable {
 
         if(sendPacket) {
             LivingEntity le = (LivingEntity) (Object) this;
-            PacketAddRopeConnection packet = new PacketAddRopeConnection(le, rope.getConnectedTo());
+            PacketUpdateRopeConnection packet = new PacketUpdateRopeConnection(PacketUpdateRopeConnection.Action.CONNECT, le, rope.getConnectedTo());
+            if(le instanceof ServerPlayerEntity)
+                MCNetworking.sendPacketTo(packet, (ServerPlayerEntity) le);
             MCNetworking.sendToAllTracking(le, packet);
         }
     }
@@ -42,10 +45,12 @@ public class MixinLivingEntity implements IRopeConnectable {
         if(ropes == null) return;
         this.ropes.remove(rope);
 
-        /*if(sendPacket) {
+        if(sendPacket) {
             LivingEntity le = (LivingEntity) (Object) this;
-            for(ServerPlayerEntity player : PlayerLookup.tracking(le))
-                MCNetworking.sendRemoveRopePacket(player, le, rope.getConnectedTo());
-        }*/
+            PacketUpdateRopeConnection packet = new PacketUpdateRopeConnection(PacketUpdateRopeConnection.Action.DISCONNECT, le, rope.getConnectedTo());
+            if(le instanceof ServerPlayerEntity)
+                MCNetworking.sendPacketTo(packet, (ServerPlayerEntity) le);
+            MCNetworking.sendToAllTracking(le, packet);
+        }
     }
 }
