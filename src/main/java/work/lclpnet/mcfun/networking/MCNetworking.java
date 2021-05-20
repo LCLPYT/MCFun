@@ -10,7 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
-import work.lclpnet.mcfun.networking.packet.PacketAddRopeConnection;
+import work.lclpnet.mcfun.networking.packet.PacketUpdateRopeConnection;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +23,7 @@ public class MCNetworking {
     /* */
 
     public static void registerPackets() {
-        register(PacketAddRopeConnection.ID, new PacketAddRopeConnection.Decoder());
+        register(PacketUpdateRopeConnection.ID, new PacketUpdateRopeConnection.Decoder());
     }
 
     /* */

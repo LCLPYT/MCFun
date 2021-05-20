@@ -16,18 +16,20 @@ import work.lclpnet.mcfun.networking.MCPacket;
 import work.lclpnet.mcfun.rope.IRopeConnectable;
 import work.lclpnet.mcfun.rope.Rope;
 
-public class PacketAddRopeConnection extends MCPacket implements IClientPacketHandler {
+public class PacketUpdateRopeConnection extends MCPacket implements IClientPacketHandler {
 
-    public static final Identifier ID = new Identifier(MCFun.MOD_ID,"add_rope_connection");
+    public static final Identifier ID = new Identifier(MCFun.MOD_ID,"update_rope_connection");
 
+    private final Action action;
     private final int entityId, toEntityId;
 
-    public PacketAddRopeConnection(LivingEntity entity, LivingEntity toEntity) {
-        this(entity.getEntityId(), toEntity.getEntityId());
+    public PacketUpdateRopeConnection(Action action, LivingEntity entity, LivingEntity toEntity) {
+        this(action, entity.getEntityId(), toEntity.getEntityId());
     }
 
-    public PacketAddRopeConnection(int entityId, int toEntityId) {
+    public PacketUpdateRopeConnection(Action action, int entityId, int toEntityId) {
         super(ID);
+        this.action = action;
         this.entityId = entityId;
         this.toEntityId = toEntityId;
     }
@@ -42,23 +44,33 @@ public class PacketAddRopeConnection extends MCPacket implements IClientPacketHa
             LivingEntity entity = (LivingEntity) client.world.getEntityById(this.entityId);
             LivingEntity connectTo = (LivingEntity) client.world.getEntityById(this.toEntityId);
 
-            IRopeConnectable.getFrom(entity).addRopeConnection(new Rope(connectTo), false);
+            if(action == Action.CONNECT) IRopeConnectable.getFrom(entity).addRopeConnection(new Rope(connectTo), false);
+            else if(action == Action.DISCONNECT) IRopeConnectable.getFrom(entity).removeRopeConnection(new Rope(connectTo), false);
         });
     }
 
     @Override
     public void encodeTo(PacketByteBuf buffer) {
+        buffer.writeEnumConstant(action);
         buffer.writeInt(this.entityId);
         buffer.writeInt(this.toEntityId);
     }
 
-    public static class Decoder implements IPacketDecoder<PacketAddRopeConnection> {
+    public enum Action {
+
+        CONNECT,
+        DISCONNECT
+
+    }
+
+    public static class Decoder implements IPacketDecoder<PacketUpdateRopeConnection> {
 
         @Override
-        public PacketAddRopeConnection decode(PacketByteBuf buffer) {
+        public PacketUpdateRopeConnection decode(PacketByteBuf buffer) {
+            Action action = buffer.readEnumConstant(Action.class);
             int entityId = buffer.readInt();
             int toEntityId = buffer.readInt();
-            return new PacketAddRopeConnection(entityId, toEntityId);
+            return new PacketUpdateRopeConnection(action, entityId, toEntityId);
         }
     }
 

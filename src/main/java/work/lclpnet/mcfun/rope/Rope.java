@@ -30,4 +30,11 @@ public class Rope {
     public int hashCode() {
         return Objects.hash(connectedTo);
     }
+
+    @Override
+    public String toString() {
+        return "Rope{" +
+                "connectedTo=" + connectedTo +
+                '}';
+    }
 }
