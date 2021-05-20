@@ -6,17 +6,21 @@ import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ActionResult;
 import work.lclpnet.mcfun.cmd.MCCommands;
+import work.lclpnet.mcfun.networking.MCNetworking;
 import work.lclpnet.mcfun.rope.IRopeConnectable;
 import work.lclpnet.mcfun.rope.Rope;
 
 public class MCFun implements ModInitializer {
 
+	public static final String MOD_ID = "mcfun";
+
 	@Override
 	public void onInitialize() {
-		System.out.println("Hello from fabric");
+		MCNetworking.registerPackets();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> MCCommands.registerCommands(dispatcher));
 
+		// remove later
 		AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
 			if(!(entity instanceof LivingEntity) || !world.isClient) return ActionResult.PASS;
 			LivingEntity le = (LivingEntity) entity;
@@ -26,5 +30,4 @@ public class MCFun implements ModInitializer {
 			return ActionResult.PASS;
 		});
 	}
-
 }

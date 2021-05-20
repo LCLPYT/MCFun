@@ -3,6 +3,8 @@ package work.lclpnet.mcfun.mixin;
 import net.minecraft.entity.LivingEntity;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import work.lclpnet.mcfun.networking.MCNetworking;
+import work.lclpnet.mcfun.networking.packet.PacketAddRopeConnection;
 import work.lclpnet.mcfun.rope.IRopeConnectable;
 import work.lclpnet.mcfun.rope.Rope;
 
@@ -27,11 +29,11 @@ public class MixinLivingEntity implements IRopeConnectable {
         if (this.ropes == null) this.ropes = new HashSet<>();
         this.ropes.add(rope);
 
-        /*if(sendPacket) {
+        if(sendPacket) {
             LivingEntity le = (LivingEntity) (Object) this;
-            for(ServerPlayerEntity player : PlayerLookup.tracking(le))
-                MCNetworking.sendAddRopePacket(player, le, rope.getConnectedTo());
-        }*/
+            PacketAddRopeConnection packet = new PacketAddRopeConnection(le, rope.getConnectedTo());
+            MCNetworking.sendToAllTracking(le, packet);
+        }
     }
 
     @Override
