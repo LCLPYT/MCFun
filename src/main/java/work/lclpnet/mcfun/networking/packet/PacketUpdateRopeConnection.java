@@ -10,11 +10,10 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 import work.lclpnet.mcfun.MCFun;
+import work.lclpnet.mcfun.asm.type.IRopeNode;
 import work.lclpnet.mcfun.networking.IClientPacketHandler;
 import work.lclpnet.mcfun.networking.IPacketDecoder;
 import work.lclpnet.mcfun.networking.MCPacket;
-import work.lclpnet.mcfun.rope.IRopeConnectable;
-import work.lclpnet.mcfun.rope.Rope;
 
 public class PacketUpdateRopeConnection extends MCPacket implements IClientPacketHandler {
 
@@ -44,8 +43,8 @@ public class PacketUpdateRopeConnection extends MCPacket implements IClientPacke
             LivingEntity entity = (LivingEntity) client.world.getEntityById(this.entityId);
             LivingEntity connectTo = (LivingEntity) client.world.getEntityById(this.toEntityId);
 
-            if(action == Action.CONNECT) IRopeConnectable.getFrom(entity).addRopeConnection(new Rope(connectTo), false);
-            else if(action == Action.DISCONNECT) IRopeConnectable.getFrom(entity).removeRopeConnection(new Rope(connectTo), false);
+            if(action == Action.CONNECT) IRopeNode.fromEntity(entity).connectWith(connectTo);
+            else if(action == Action.DISCONNECT) IRopeNode.fromEntity(entity).disconnectFrom(connectTo);
         });
     }
 

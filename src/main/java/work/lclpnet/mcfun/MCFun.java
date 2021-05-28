@@ -5,13 +5,14 @@ import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ActionResult;
+import work.lclpnet.mcfun.asm.type.IRopeNode;
 import work.lclpnet.mcfun.cmd.MCCommands;
 import work.lclpnet.mcfun.networking.MCNetworking;
-import work.lclpnet.mcfun.rope.IRopeConnectable;
 
 public class MCFun implements ModInitializer {
 
 	public static final String MOD_ID = "mcfun";
+	public static final float ROPE_LENGTH = 10F, ROPE_LENGTH_SQUARED = ROPE_LENGTH * ROPE_LENGTH;
 
 	@Override
 	public void onInitialize() {
@@ -28,10 +29,10 @@ public class MCFun implements ModInitializer {
 
 //			IRopeConnectable.getFrom(le).addRopeConnection(new Rope(player), false);
 			System.out.print("attacked connections: ");
-			System.out.println(IRopeConnectable.getFrom(le).getRopeConnections());
+			System.out.println(IRopeNode.fromEntity(le).getRopeConnectedEntities());
 
 			System.out.print("player conntions: ");
-			System.out.println(IRopeConnectable.getFrom(player).getRopeConnections());
+			System.out.println(IRopeNode.fromEntity(player).getRopeConnectedEntities());
 			return ActionResult.PASS;
 		});
 	}

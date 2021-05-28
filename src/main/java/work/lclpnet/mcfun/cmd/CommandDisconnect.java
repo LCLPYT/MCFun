@@ -11,11 +11,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
-import work.lclpnet.mcfun.rope.IRopeConnectable;
-import work.lclpnet.mcfun.rope.Rope;
-
-import java.util.Optional;
-import java.util.Set;
+import work.lclpnet.mcfun.asm.type.IRopeNode;
 
 import static net.minecraft.server.command.CommandManager.argument;
 
@@ -50,23 +46,12 @@ public class CommandDisconnect extends CommandBase {
 
         LivingEntity first = (LivingEntity) firstEntity;
         LivingEntity second = (LivingEntity) secondEntity;
-        IRopeConnectable firstRopeConnectable = IRopeConnectable.getFrom(first);
-        IRopeConnectable secondRopeConnectable = IRopeConnectable.getFrom(second);
+        IRopeNode firstNode = IRopeNode.fromEntity(first);
+        IRopeNode secondNode = IRopeNode.fromEntity(second);
 
-        if(!firstRopeConnectable.isConnectedTo(second) && !secondRopeConnectable.isConnectedTo(first)) throw ENTITIES_NOT_LINKED.create();
+        if(!firstNode.isConnectedTo(second) && !secondNode.isConnectedTo(first)) throw ENTITIES_NOT_LINKED.create();
 
-        Set<Rope> firstConnections = firstRopeConnectable.getRopeConnections();
-        Set<Rope> secondConnections = secondRopeConnectable.getRopeConnections();
-
-        if(firstConnections == null || secondConnections == null) {
-            System.err.println("Error connections are null");
-            return 0;
-        }
-
-        Optional<Rope> firstRope = firstConnections.stream().filter(r -> r.getConnectedTo().equals(second)).findFirst();
-        Optional<Rope> secondRope = secondConnections.stream().filter(r -> r.getConnectedTo().equals(first)).findFirst();
-        firstRope.ifPresent(rope -> firstRopeConnectable.removeRopeConnection(rope, true));
-        secondRope.ifPresent(rope -> secondRopeConnectable.removeRopeConnection(rope, true));
+        firstNode.removeConnectionWith(second);
 
         MutableText feedback = new TranslatableText("commands.disconnect.entities.disconnected", firstEntity.getName(), secondEntity.getName()).formatted(Formatting.RED);
         ctx.getSource().sendFeedback(feedback, true);

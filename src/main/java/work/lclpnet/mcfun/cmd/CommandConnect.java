@@ -11,8 +11,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
-import work.lclpnet.mcfun.rope.IRopeConnectable;
-import work.lclpnet.mcfun.rope.Rope;
+import work.lclpnet.mcfun.asm.type.IRopeNode;
 
 import static net.minecraft.server.command.CommandManager.argument;
 
@@ -29,7 +28,6 @@ public class CommandConnect extends CommandBase {
     protected LiteralArgumentBuilder<ServerCommandSource> transform(LiteralArgumentBuilder<ServerCommandSource> builder) {
         return builder
                 .requires(MCCommands::permLevel2)
-                .requires(MCCommands::isPlayer)
                 .then(argument("entity1", EntityArgumentType.entity())
                         .then(argument("entity2", EntityArgumentType.entity())
                                 .executes(CommandConnect::connect)));
@@ -48,13 +46,12 @@ public class CommandConnect extends CommandBase {
 
         LivingEntity first = (LivingEntity) firstEntity;
         LivingEntity second = (LivingEntity) secondEntity;
-        IRopeConnectable firstRopeConnectable = IRopeConnectable.getFrom(first);
-        IRopeConnectable secondRopeConnectable = IRopeConnectable.getFrom(second);
+        IRopeNode firstNode = IRopeNode.fromEntity(first);
+        IRopeNode secondNode = IRopeNode.fromEntity(second);
 
-        if(firstRopeConnectable.isConnectedTo(second) || secondRopeConnectable.isConnectedTo(first)) throw ENTITIES_ALREADY_LINKED.create();
+        if(firstNode.isConnectedTo(second) || secondNode.isConnectedTo(first)) throw ENTITIES_ALREADY_LINKED.create();
 
-        firstRopeConnectable.addRopeConnection(new Rope(second), true);
-        secondRopeConnectable.addRopeConnection(new Rope(first), true);
+        firstNode.addConnectionWith(second);
 
         MutableText feedback = new TranslatableText("commands.connect.entities.connected", firstEntity.getName(), secondEntity.getName()).formatted(Formatting.GREEN);
         ctx.getSource().sendFeedback(feedback, true);

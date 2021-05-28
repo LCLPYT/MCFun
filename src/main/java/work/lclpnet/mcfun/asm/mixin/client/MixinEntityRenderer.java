@@ -1,5 +1,6 @@
-package work.lclpnet.mcfun.mixin;
+package work.lclpnet.mcfun.asm.mixin.client;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
@@ -10,6 +11,7 @@ import net.minecraft.client.render.entity.MobEntityRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
@@ -22,8 +24,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import work.lclpnet.mcfun.rope.IRopeConnectable;
-import work.lclpnet.mcfun.rope.Rope;
+import work.lclpnet.mcfun.asm.type.IRopeNode;
 
 import java.util.Set;
 
@@ -43,14 +44,13 @@ public abstract class MixinEntityRenderer {
             cancellable = true
     )
     public void onShouldRender(Entity entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cir) {
-        if(!cir.getReturnValueZ() || !(entity instanceof LivingEntity)) return;
+        if(cir.getReturnValueZ() || !(entity instanceof LivingEntity)) return;
         LivingEntity livingEntity = (LivingEntity) entity;
 
-        Set<Rope> connections = IRopeConnectable.getFrom(livingEntity).getRopeConnections();
-        if(connections == null) return;
+        Set<LivingEntity> connected = IRopeNode.fromEntity(livingEntity).getRopeConnectedEntities();
+        if(connected == null) return;
 
-        boolean shouldRender = connections.stream()
-                .anyMatch(rope -> frustum.isVisible(rope.getConnectedTo().getVisibilityBoundingBox()));
+        boolean shouldRender = connected.stream().anyMatch(en -> frustum.isVisible(en.getVisibilityBoundingBox()));
 
         cir.setReturnValue(shouldRender);
         cir.cancel();
@@ -64,10 +64,28 @@ public abstract class MixinEntityRenderer {
         if(!(entity instanceof LivingEntity)) return;
         LivingEntity livingEntity = (LivingEntity) entity;
 
-        Set<Rope> connections = IRopeConnectable.getFrom(livingEntity).getRopeConnections();
-        if(connections == null) return;
+        Set<LivingEntity> connected = IRopeNode.fromEntity(livingEntity).getRopeConnectedEntities();
+        if(connected == null) return;
 
-        connections.forEach(rope -> renderRope(livingEntity, tickDelta, matrices, vertexConsumers, rope.getConnectedTo()));
+        connected.stream()
+                .filter(en -> shouldRenderRope(en, livingEntity))
+                .forEach(en -> renderRope(livingEntity, tickDelta, matrices, vertexConsumers, en));
+    }
+
+    private boolean shouldRenderRope(LivingEntity from, LivingEntity to) {
+        boolean fromPlayer = from instanceof PlayerEntity, toPlayer = to instanceof PlayerEntity;
+
+        if(fromPlayer) {
+            if(toPlayer) return MinecraftClient.getInstance().player != null && MinecraftClient.getInstance().player.equals(from);
+            else return true;
+        } else if(toPlayer) return false;
+        else return from.getEntityId() > to.getEntityId();
+        /*Set<LivingEntity> fromConnections = IRopeNode.fromEntity(from).getRopeConnectedEntities();
+        Set<LivingEntity> toConnections = IRopeNode.fromEntity(to).getRopeConnectedEntities();
+        if(fromConnections != null && toConnections != null) {
+            if(fromConnections.size() == toConnections.size()) return from.getEntityId() > to.getEntityId();
+            else return fromConnections.size() > toConnections.size();
+        } else return from.getEntityId() > to.getEntityId();*/
     }
 
     private <E extends Entity> void renderRope(LivingEntity mobEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, E entity) {
@@ -84,7 +102,6 @@ public abstract class MixinEntityRenderer {
         float k = (float)(vec3d.x - h);
         float l = (float)(vec3d.y - i);
         float m = (float)(vec3d.z - j);
-        float n = 0.025F;
         VertexConsumer vertexConsumer = vertexConsumerProvider.getBuffer(RenderLayer.getLeash());
         Matrix4f matrix4f = matrixStack.peek().getModel();
         float o = MathHelper.fastInverseSqrt(k * k + m * m) * 0.025F / 2.0F;

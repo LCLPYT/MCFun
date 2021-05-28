@@ -1,3 +1,12 @@
 accessWidener v1 named
+
 # EntityRenderer
 accessible method net/minecraft/client/render/entity/EntityRenderer getBlockLight (Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/BlockPos;)I
+
+# MobEntity
+accessible method net/minecraft/entity/mob/MobEntity updateGoalControls ()V
+accessible field net/minecraft/entity/mob/MobEntity goalSelector Lnet/minecraft/entity/ai/goal/GoalSelector;
+
+# PathAwareEntity
+accessible method net/minecraft/entity/mob/PathAwareEntity updateForLeashLength (F)V
+accessible method net/minecraft/entity/mob/PathAwareEntity getRunFromLeashSpeed ()D
