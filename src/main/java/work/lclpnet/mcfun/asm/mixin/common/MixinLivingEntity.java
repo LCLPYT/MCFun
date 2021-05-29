@@ -101,13 +101,21 @@ public class MixinLivingEntity implements IRopeNode {
 
         LivingEntity living = castTo(this, LivingEntity.class);
 
+        Set<LivingEntity> removeLater = new HashSet<>();
+
         // remove all ropes, if the entity is dead
-        if (!living.isAlive()) ropeConnected.forEach(this::removeConnectionWith);
+        if (!living.isAlive()) removeLater.addAll(ropeConnected);
 
         // remove any rope connection where the connected entity is dead
         ropeConnected.stream()
                 .filter(entity -> !entity.isAlive())
-                .forEach(this::removeConnectionWith);
+                .forEach(removeLater::add);
+
+        // actually remove the connections (after iteration, to prevent ConcurrentModificationException)
+        if (!removeLater.isEmpty()) {
+            removeLater.forEach(this::removeConnectionWith);
+            removeLater.clear();
+        }
 
         LivingEntity nearestConnected = null;
         boolean shouldCancelNearest = false;
