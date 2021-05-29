@@ -146,9 +146,7 @@ public class MixinLivingEntity implements IRopeNode {
                     Math.copySign(e * e * 0.4D, e),
                     Math.copySign(g * g * 0.4D, g)
             ));
-            if(isInstance(living, ServerPlayerEntity.class)) {
-                // something is not working for players right here
-            }
+            living.velocityModified = true;
         });
     }
 
