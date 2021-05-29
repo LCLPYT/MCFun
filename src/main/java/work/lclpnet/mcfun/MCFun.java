@@ -2,11 +2,13 @@ package work.lclpnet.mcfun;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
-import work.lclpnet.mcfun.asm.type.IRopeNode;
+import net.minecraft.util.Hand;
 import work.lclpnet.mcfun.cmd.MCCommands;
+import work.lclpnet.mcfun.event.LeftClickAirCallback;
+import work.lclpnet.mcfun.item.MCItems;
+import work.lclpnet.mcfun.item.RopeItem;
 import work.lclpnet.mcfun.networking.MCNetworking;
 
 public class MCFun implements ModInitializer {
@@ -17,23 +19,18 @@ public class MCFun implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		MCNetworking.registerPackets();
+		MCNetworking.registerServerPacketHandlers();
+		MCItems.register();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> MCCommands.registerCommands(dispatcher));
 
-		// remove later
-		AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-			if(!(entity instanceof LivingEntity) || !world.isClient) return ActionResult.PASS;
-			// called on client, when living entites are attacked by the client player.
-			LivingEntity le = (LivingEntity) entity;
-			System.out.println("attacked: " + entity);
+		LeftClickAirCallback.EVENT.register((player, world) -> {
+			if(world.isClient) return ActionResult.PASS;
 
-//			IRopeConnectable.getFrom(le).addRopeConnection(new Rope(player), false);
-			System.out.print("attacked connections: ");
-			System.out.println(IRopeNode.fromEntity(le).getRopeConnectedEntities());
+			ItemStack stack = player.getStackInHand(Hand.MAIN_HAND);
+			if(stack == null || stack.isEmpty() || !stack.getItem().equals(MCItems.ROPE_ITEM)) return ActionResult.PASS;
 
-			System.out.print("player conntions: ");
-			System.out.println(IRopeNode.fromEntity(player).getRopeConnectedEntities());
-			return ActionResult.PASS;
+			return RopeItem.useOn(player, player) ? ActionResult.FAIL : ActionResult.SUCCESS;
 		});
 	}
 }

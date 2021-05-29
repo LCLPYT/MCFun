@@ -10,3 +10,6 @@ accessible field net/minecraft/entity/mob/MobEntity goalSelector Lnet/minecraft/
 # PathAwareEntity
 accessible method net/minecraft/entity/mob/PathAwareEntity updateForLeashLength (F)V
 accessible method net/minecraft/entity/mob/PathAwareEntity getRunFromLeashSpeed ()D
+
+# PlayerEntity
+accessible method net/minecraft/entity/player/PlayerEntity isImmobile ()Z

@@ -24,9 +24,6 @@
     ],
     "client": [
       "work.lclpnet.mcfun.MCFunClient"
-    ],
-    "server": [
-      "work.lclpnet.mcfun.MCFunServer"
     ]
   },
   "mixins": [

@@ -2,5 +2,13 @@
   "commands.connect.entities.equal": "Bitte suche zwei unterschiedliche Entities aus.",
   "commands.connect.entities.already-linked": "Diese beiden Entities sind bereits verbunden.",
   "commands.connect.entities.connected": "%s wurde mit %s verbunden.",
-  "commands.connect.entities.not-living": "Kein LivingEntity: %s"
+  "commands.disconnect.entities.disconnected": "Disconnected %s from %s",
+  "commands.connect.entities.not-living": "Kein LivingEntity: %s",
+  "commands.disconnect.entities.equal": "Please choose two different entities.",
+  "commands.disconnect.entities.not-linked": "There is no connection between the two selected entities.",
+  "item.mcfun.rope": "Seil",
+  "item.mcfun.rope.selected": "%s wurde ausgewählt. Rechtsklicke ein anderes Wesen, um sie zu verbinden.",
+  "item.mcfun.rope.selected_disconnect": "%s wurde ausgewählt. Ducke dich and rechtsklicke ein anderes Wesen, um sie zu trennen.",
+  "item.mcfun.rope.not_connected": "%s hat keine Seilverbindungen.",
+  "item.mcfun.rope.equal": "Bitte wähle ein anderes Wesen."
 }

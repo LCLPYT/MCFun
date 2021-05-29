@@ -20,7 +20,6 @@ public interface IPacketDecoder<T extends MCPacket> {
         else System.err.printf("Unhandled packet \"%s\" received on client.%n", msg.getIdentifier());
     }
 
-    @Environment(EnvType.SERVER)
     default void handleServer(MCPacket msg, MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketSender responseSender) {
         if(msg instanceof IServerPacketHandler) ((IServerPacketHandler) msg).handleServer(server, player, handler, responseSender);
         else System.err.printf("Unhandled packet \"%s\" received on server.%n", msg.getIdentifier());

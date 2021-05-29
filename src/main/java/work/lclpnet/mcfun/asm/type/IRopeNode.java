@@ -32,7 +32,7 @@ public interface IRopeNode {
      * Establishes a rope connection between this entity and the given entity.
      * A rope connection will be created for this entity and for the other.
      *
-     * @param other
+     * @param other The other entity.
      */
     default void addConnectionWith(LivingEntity other) {
         Objects.requireNonNull(other);

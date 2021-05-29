@@ -3,6 +3,12 @@
   "commands.connect.entities.already-linked": "Those entities are already linked.",
   "commands.connect.entities.connected": "Connected %s with %s.",
   "commands.disconnect.entities.disconnected": "Disconnected %s from %s",
+  "commands.connect.entities.not-living": "Not a LivingEntity: %s",
   "commands.disconnect.entities.equal": "Please choose two different entities.",
-  "commands.disconnect.entities.not-linked": "There is no connection between the two selected entities."
+  "commands.disconnect.entities.not-linked": "There is no connection between the two selected entities.",
+  "item.mcfun.rope": "Rope",
+  "item.mcfun.rope.selected": "Selected %s. Right-click another entity to connect them.",
+  "item.mcfun.rope.selected_disconnect": "Selected %s. Sneak and right-click another entity to disconnect them.",
+  "item.mcfun.rope.not_connected": "%s does not have any rope connections.",
+  "item.mcfun.rope.equal": "Please choose a different entity!"
 }

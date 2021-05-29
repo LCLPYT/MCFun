@@ -10,6 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import work.lclpnet.mcfun.networking.packet.PacketLeftClickAir;
 import work.lclpnet.mcfun.networking.packet.PacketUpdateRopeConnection;
 
 import java.util.HashMap;
@@ -24,6 +25,7 @@ public class MCNetworking {
 
     public static void registerPackets() {
         register(PacketUpdateRopeConnection.ID, new PacketUpdateRopeConnection.Decoder());
+        register(PacketLeftClickAir.ID, buffer -> new PacketLeftClickAir());
     }
 
     /* */
@@ -43,7 +45,6 @@ public class MCNetworking {
         );
     }
 
-    @Environment(EnvType.SERVER)
     public static void registerServerPacketHandlers() {
         packetDecoderMap.forEach(
                 (id, serializer) -> ServerPlayNetworking.registerGlobalReceiver(id,
@@ -63,4 +64,10 @@ public class MCNetworking {
         PlayerLookup.tracking(tracked).forEach(p -> sendPacketTo(packet, p));
     }
 
+    @Environment(EnvType.CLIENT)
+    public static void sendPacketToServer(MCPacket packet) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        packet.encodeTo(buf);
+        ClientPlayNetworking.send(packet.getIdentifier(), buf);
+    }
 }

@@ -53,7 +53,7 @@ public class CommandDisconnect extends CommandBase {
 
         firstNode.removeConnectionWith(second);
 
-        MutableText feedback = new TranslatableText("commands.disconnect.entities.disconnected", firstEntity.getName(), secondEntity.getName()).formatted(Formatting.RED);
+        MutableText feedback = new TranslatableText("commands.disconnect.entities.disconnected", firstEntity.getName(), secondEntity.getName()).formatted(Formatting.GREEN);
         ctx.getSource().sendFeedback(feedback, true);
 
         return 0;
