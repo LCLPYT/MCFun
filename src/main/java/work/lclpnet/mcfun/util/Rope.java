@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 public class Rope {
 
     public static float DEFAULT_ROPE_LENGTH = 10F;
-    private float length, lengthSquared;
+    private float length, lengthSquared, tensionFactor;
     @Nullable
     private Consumer<Rope> onUpdate = null;
 
@@ -30,12 +30,17 @@ public class Rope {
         return lengthSquared;
     }
 
+    public float getTensionFactor() {
+        return tensionFactor;
+    }
+
     public void setLength(float length) {
         if(Float.isNaN(length)) throw new IllegalArgumentException("NaN length");
         else if(!Float.isFinite(length)) throw new IllegalArgumentException("Non finite length");
 
         this.length = length;
         this.lengthSquared = length * length;
+        this.tensionFactor = 0.04F / (length * 0.2F);
 
         this.onUpdate();
     }

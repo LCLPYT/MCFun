@@ -6,6 +6,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import work.lclpnet.mcfun.cmd.CommandConnect;
 import work.lclpnet.mcfun.cmd.CommandDisconnect;
 import work.lclpnet.mcfun.cmd.CommandDisconnectAll;
+import work.lclpnet.mcfun.cmd.CommandSetRopeLength;
 
 import java.util.function.Predicate;
 
@@ -15,6 +16,7 @@ public class MCCommands {
         new CommandConnect().register(dispatcher);
         new CommandDisconnect().register(dispatcher);
         new CommandDisconnectAll().register(dispatcher);
+        new CommandSetRopeLength().register(dispatcher);
     }
 
     /* */

@@ -20,7 +20,7 @@ import static net.minecraft.server.command.CommandManager.argument;
 public class CommandDisconnect extends CommandBase {
 
     private static final SimpleCommandExceptionType ENTITIES_EQUAL = new SimpleCommandExceptionType(new TranslatableText("commands.disconnect.entities.equal"));
-    private static final SimpleCommandExceptionType ENTITIES_NOT_LINKED = new SimpleCommandExceptionType(new TranslatableText("commands.disconnect.entities.not-linked"));
+    static final SimpleCommandExceptionType ENTITIES_NOT_LINKED = new SimpleCommandExceptionType(new TranslatableText("commands.disconnect.entities.not-linked"));
 
     public CommandDisconnect() {
         super("disconnect");

@@ -138,7 +138,8 @@ public abstract class MixinEntityRenderer {
 
         // QUADRATIC ROPE TENSION
         float distanceSq = (float) livingEntity.squaredDistanceTo(connected);
-        float ropeTension = (Math.max(0F, distanceSq - (rope.getLengthSquared() * 0.4225F)) * 0.02F) + 1F;
+        float overhang = distanceSq - (rope.getLengthSquared() * 0.4225F);
+        float ropeTension = Math.max(0F, overhang) * rope.getTensionFactor() + 1F;
 
         method_23186_custom(vertexConsumer, matrix4f, k, l, m, r, s, t, u, 0.025F, p, q, ropeTension);
         method_23186_custom(vertexConsumer, matrix4f, k, l, m, r, s, t, u, 0.0F, p, q, ropeTension);
