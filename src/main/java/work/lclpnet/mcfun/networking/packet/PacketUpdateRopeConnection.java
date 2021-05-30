@@ -9,11 +9,16 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 import work.lclpnet.mcfun.MCFun;
 import work.lclpnet.mcfun.asm.type.IRopeNode;
 import work.lclpnet.mcfun.networking.IClientPacketHandler;
 import work.lclpnet.mcfun.networking.IPacketDecoder;
 import work.lclpnet.mcfun.networking.MCPacket;
+import work.lclpnet.mcfun.util.Rope;
+
+import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class PacketUpdateRopeConnection extends MCPacket implements IClientPacketHandler {
 
@@ -21,16 +26,15 @@ public class PacketUpdateRopeConnection extends MCPacket implements IClientPacke
 
     private final Action action;
     private final int entityId, toEntityId;
+    @Nullable
+    private Rope rope;
 
-    public PacketUpdateRopeConnection(Action action, LivingEntity entity, LivingEntity toEntity) {
-        this(action, entity.getEntityId(), toEntity.getEntityId());
-    }
-
-    public PacketUpdateRopeConnection(Action action, int entityId, int toEntityId) {
+    protected PacketUpdateRopeConnection(Action action, int entityId, int toEntityId, @Nullable Rope rope) {
         super(ID);
         this.action = action;
         this.entityId = entityId;
         this.toEntityId = toEntityId;
+        this.rope = rope;
     }
 
     @Environment(EnvType.CLIENT)
@@ -43,8 +47,25 @@ public class PacketUpdateRopeConnection extends MCPacket implements IClientPacke
             LivingEntity entity = (LivingEntity) client.world.getEntityById(this.entityId);
             LivingEntity connectTo = (LivingEntity) client.world.getEntityById(this.toEntityId);
 
-            if(action == Action.CONNECT) IRopeNode.fromEntity(entity).connectWith(connectTo);
-            else if(action == Action.DISCONNECT) IRopeNode.fromEntity(entity).disconnectFrom(connectTo);
+            if(entity == null) {
+                System.err.printf("Entity with id %s is unknown to the client.%n", this.entityId);
+                return;
+            }
+            if(connectTo == null) {
+                System.err.printf("Entity with id %s is unknown to the client.%n", this.toEntityId);
+                return;
+            }
+
+            if(action == Action.CONNECT) {
+                Objects.requireNonNull(this.rope, String.format("Rope might not be null with %s packets.", action));
+                IRopeNode.fromEntity(entity).addRopeConnection(connectTo, this.rope);
+            }
+            else if(action == Action.DISCONNECT) IRopeNode.fromEntity(entity).removeRopeConnection(connectTo);
+            else if(action == Action.UPDATE_PROPERTIES) {
+                Objects.requireNonNull(this.rope, String.format("Rope might not be null with %s packets.", action));
+                Rope rope = IRopeNode.fromEntity(entity).getRopeConnection(connectTo);
+                rope.acceptUpdate(this.rope);
+            }
         });
     }
 
@@ -53,13 +74,28 @@ public class PacketUpdateRopeConnection extends MCPacket implements IClientPacke
         buffer.writeEnumConstant(action);
         buffer.writeInt(this.entityId);
         buffer.writeInt(this.toEntityId);
+
+        boolean ropePresent = this.rope != null;
+        buffer.writeBoolean(ropePresent);
+        if(ropePresent) rope.encodeTo(buffer);
     }
 
-    public enum Action {
+    public static PacketUpdateRopeConnection createConnectPacket(LivingEntity livingEntity, LivingEntity other, @Nonnull Rope rope) {
+        return new PacketUpdateRopeConnection(Action.CONNECT, livingEntity.getEntityId(), other.getEntityId(), rope);
+    }
 
+    public static PacketUpdateRopeConnection createDisconnectPacket(LivingEntity livingEntity, LivingEntity other) {
+        return new PacketUpdateRopeConnection(Action.DISCONNECT, livingEntity.getEntityId(), other.getEntityId(), null);
+    }
+
+    public static PacketUpdateRopeConnection createUpdatePropertiesPacket(LivingEntity livingEntity, LivingEntity other, @Nonnull Rope rope) {
+        return new PacketUpdateRopeConnection(Action.UPDATE_PROPERTIES, livingEntity.getEntityId(), other.getEntityId(), rope);
+    }
+
+    protected enum Action {
         CONNECT,
-        DISCONNECT
-
+        DISCONNECT,
+        UPDATE_PROPERTIES
     }
 
     public static class Decoder implements IPacketDecoder<PacketUpdateRopeConnection> {
@@ -69,7 +105,12 @@ public class PacketUpdateRopeConnection extends MCPacket implements IClientPacke
             Action action = buffer.readEnumConstant(Action.class);
             int entityId = buffer.readInt();
             int toEntityId = buffer.readInt();
-            return new PacketUpdateRopeConnection(action, entityId, toEntityId);
+
+            boolean ropePresent = buffer.readBoolean();
+            Rope rope = null;
+            if(ropePresent) rope = Rope.decodeFrom(buffer);
+
+            return new PacketUpdateRopeConnection(action, entityId, toEntityId, rope);
         }
     }
 

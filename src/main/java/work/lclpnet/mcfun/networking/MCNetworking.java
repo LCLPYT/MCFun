@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
@@ -16,6 +17,8 @@ import work.lclpnet.mcfun.networking.packet.PacketUpdateRopeConnection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import static work.lclpnet.mcfun.asm.InstanceMixinHelper.castTo;
 
 public class MCNetworking {
 
@@ -62,6 +65,14 @@ public class MCNetworking {
         Objects.requireNonNull(tracked);
         Objects.requireNonNull(packet);
         PlayerLookup.tracking(tracked).forEach(p -> sendPacketTo(packet, p));
+    }
+
+    public static void sendToAllTrackingIncludingSelf(LivingEntity living, MCPacket packet) {
+        MCNetworking.sendToAllTracking(living, packet);
+
+        // if the entity is a player, the packet will not be sent to the player, since players do not track themselves.
+        if (living instanceof ServerPlayerEntity)
+            MCNetworking.sendPacketTo(packet, castTo(living, ServerPlayerEntity.class));
     }
 
     @Environment(EnvType.CLIENT)

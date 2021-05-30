@@ -20,8 +20,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import work.lclpnet.mcfun.MCFun;
 import work.lclpnet.mcfun.asm.type.IRopeNode;
+import work.lclpnet.mcfun.util.Rope;
 
 import java.util.Set;
 
@@ -102,7 +102,10 @@ public abstract class MixinEntityRenderer {
      * @param connected The entity which is connected with the entity rendererd by this renderer.
      * @param <E> The type of the connected entity.
      */
-    private <E extends Entity> void renderRope(LivingEntity livingEntity, float tickDelta, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, E connected) {
+    private <E extends LivingEntity> void renderRope(LivingEntity livingEntity, float tickDelta, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, E connected) {
+        Rope rope = IRopeNode.fromEntity(livingEntity).getRopeConnection(connected);
+        if(rope == null) return;
+
         matrixStack.push();
         Vec3d vec3d = connected.method_30951(tickDelta);
         double d = (double)(MathHelper.lerp(tickDelta, livingEntity.bodyYaw, livingEntity.prevBodyYaw) * 0.017453292F) + 1.5707963267948966D;
@@ -135,27 +138,27 @@ public abstract class MixinEntityRenderer {
 
         // QUADRATIC ROPE TENSION
         float distanceSq = (float) livingEntity.squaredDistanceTo(connected);
-        float ropeTension = (Math.max(0F, distanceSq - (MCFun.ROPE_LENGTH_SQUARED * 0.4225F)) * 0.02F) + 1F;
+        float ropeTension = (Math.max(0F, distanceSq - (rope.getLengthSquared() * 0.4225F)) * 0.02F) + 1F;
 
-        method_23186_custom(vertexConsumer, matrix4f, k, l, m, r, s, t, u, 0.025F, 0.025F, p, q, ropeTension);
-        method_23186_custom(vertexConsumer, matrix4f, k, l, m, r, s, t, u, 0.025F, 0.0F, p, q, ropeTension);
+        method_23186_custom(vertexConsumer, matrix4f, k, l, m, r, s, t, u, 0.025F, p, q, ropeTension);
+        method_23186_custom(vertexConsumer, matrix4f, k, l, m, r, s, t, u, 0.0F, p, q, ropeTension);
         matrixStack.pop();
     }
 
     // Override for MobEntityRenderer#method_23186 to change the rope look to look different from leashes.
-    private static void method_23186_custom(VertexConsumer vertexConsumer, Matrix4f matrix4f, float f, float g, float h, int i, int j, int k, int l, float m, float n, float o, float p, float ropeTension) {
+    private static void method_23186_custom(VertexConsumer vertexConsumer, Matrix4f matrix4f, float f, float g, float h, int i, int j, int k, int l, float n, float o, float p, float ropeTension) {
         for(int r = 0; r < 24; ++r) {
             float s = (float)r / 23.0F;
             int t = (int)MathHelper.lerp(s, (float)i, (float)j);
             int u = (int)MathHelper.lerp(s, (float)k, (float)l);
             int v = LightmapTextureManager.pack(t, u);
-            method_23187_custom(vertexConsumer, matrix4f, v, f, g, h, m, n, 24, r, false, o, p, ropeTension);
-            method_23187_custom(vertexConsumer, matrix4f, v, f, g, h, m, n, 24, r + 1, true, o, p, ropeTension);
+            method_23187_custom(vertexConsumer, matrix4f, v, f, g, h, n, r, false, o, p, ropeTension);
+            method_23187_custom(vertexConsumer, matrix4f, v, f, g, h, n, r + 1, true, o, p, ropeTension);
         }
     }
 
     // Override for MobEntityRenderer#method_23187 to change the leash color.
-    private static void method_23187_custom(VertexConsumer vertexConsumer, Matrix4f matrix4f, int i, float f, float g, float h, float j, float k, int l, int m, boolean bl, float n, float o, float ropeTension) {
+    private static void method_23187_custom(VertexConsumer vertexConsumer, Matrix4f matrix4f, int i, float f, float g, float h, float k, int m, boolean bl, float n, float o, float ropeTension) {
         float red = MathHelper.clamp(0.24F * ropeTension, 0F, 1F);
         float green = 0.16F;
         float blue = 0.09F;
@@ -166,17 +169,17 @@ public abstract class MixinEntityRenderer {
             blue *= 0.7F;
         }
 
-        float s = (float)m / (float)l;
+        float s = (float)m / (float) 24;
         float t = f * s;
         float u = g > 0.0F ? g * s * s : g - g * (1.0F - s) * (1.0F - s);
         float v = h * s;
         if (!bl) {
-            vertexConsumer.vertex(matrix4f, t + n, u + j - k, v - o).color(red, green, blue, 1.0F).light(i).next();
+            vertexConsumer.vertex(matrix4f, t + n, u + (float) 0.025 - k, v - o).color(red, green, blue, 1.0F).light(i).next();
         }
 
         vertexConsumer.vertex(matrix4f, t - n, u + k, v + o).color(red, green, blue, 1.0F).light(i).next();
         if (bl) {
-            vertexConsumer.vertex(matrix4f, t + n, u + j - k, v - o).color(red, green, blue, 1.0F).light(i).next();
+            vertexConsumer.vertex(matrix4f, t + n, u + (float) 0.025 - k, v - o).color(red, green, blue, 1.0F).light(i).next();
         }
     }
 

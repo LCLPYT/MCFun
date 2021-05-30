@@ -1,6 +1,9 @@
 package work.lclpnet.mcfun.asm.type;
 
 import net.minecraft.entity.LivingEntity;
+import work.lclpnet.mcfun.networking.MCNetworking;
+import work.lclpnet.mcfun.networking.packet.PacketUpdateRopeConnection;
+import work.lclpnet.mcfun.util.Rope;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -14,9 +17,12 @@ public interface IRopeNode {
     @Nullable
     Set<LivingEntity> getRopeConnectedEntities();
 
-    void connectWith(LivingEntity entity);
+    void addRopeConnection(LivingEntity entity, Rope rope);
 
-    void disconnectFrom(LivingEntity entity);
+    void removeRopeConnection(LivingEntity entity);
+
+    @Nullable
+    Rope getRopeConnection(LivingEntity other);
 
     default boolean isConnectedTo(LivingEntity entity) {
         Objects.requireNonNull(entity);
@@ -34,11 +40,20 @@ public interface IRopeNode {
      *
      * @param other The other entity.
      */
-    default void addConnectionWith(LivingEntity other) {
+    default void addConnectionWith(final LivingEntity other) {
         Objects.requireNonNull(other);
+        if(isConnectedTo(other)) return;
 
-        connectWith(other);
-        fromEntity(other).connectWith(castTo(this, LivingEntity.class));
+        final LivingEntity entity = castTo(this, LivingEntity.class);
+
+        Rope rope = new Rope(); // this rope instance is shared between the connected entities.
+        rope.setOnUpdate(updatedRope -> {
+            if(entity.world.isClient) return;
+            MCNetworking.sendToAllTrackingIncludingSelf(entity, PacketUpdateRopeConnection.createUpdatePropertiesPacket(entity, other, updatedRope));
+        });
+
+        addRopeConnection(other, rope);
+        fromEntity(other).addRopeConnection(entity, rope);
     }
 
     /**
@@ -51,8 +66,8 @@ public interface IRopeNode {
     default void removeConnectionWith(LivingEntity other) {
         Objects.requireNonNull(other);
 
-        disconnectFrom(other);
-        fromEntity(other).disconnectFrom(castTo(this, LivingEntity.class));
+        removeRopeConnection(other);
+        fromEntity(other).removeRopeConnection(castTo(this, LivingEntity.class));
     }
 
     @Nonnull

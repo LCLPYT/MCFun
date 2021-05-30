@@ -14,7 +14,6 @@ import work.lclpnet.mcfun.networking.MCNetworking;
 public class MCFun implements ModInitializer {
 
 	public static final String MOD_ID = "mcfun";
-	public static final float ROPE_LENGTH = 10F, ROPE_LENGTH_SQUARED = ROPE_LENGTH * ROPE_LENGTH;
 
 	@Override
 	public void onInitialize() {
