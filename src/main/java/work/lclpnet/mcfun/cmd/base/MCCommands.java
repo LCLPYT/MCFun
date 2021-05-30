@@ -1,18 +1,23 @@
-package work.lclpnet.mcfun.cmd;
+package work.lclpnet.mcfun.cmd.base;
 
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.ServerCommandSource;
+import work.lclpnet.mcfun.cmd.CommandConnect;
+import work.lclpnet.mcfun.cmd.CommandDisconnect;
+import work.lclpnet.mcfun.cmd.CommandDisconnectAll;
 
 import java.util.function.Predicate;
 
 public class MCCommands {
 
     public static void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher) {
-        new CommandEcho().register(dispatcher);
         new CommandConnect().register(dispatcher);
         new CommandDisconnect().register(dispatcher);
+        new CommandDisconnectAll().register(dispatcher);
     }
+
+    /* */
 
     public static boolean permLevel1(ServerCommandSource cs) {
         return cs.hasPermissionLevel(1);

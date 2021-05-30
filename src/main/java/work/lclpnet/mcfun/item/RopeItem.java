@@ -67,7 +67,7 @@ public class RopeItem extends Item {
                     return true;
                 }
 
-                IRopeNode.fromEntity(selected).removeConnectionWith(entity);
+                IRopeNode.fromEntity(selected).disconnectFrom(entity);
                 user.sendSystemMessage(new TranslatableText("commands.disconnect.entities.disconnected", selected.getName(), entity.getName()).formatted(Formatting.GREEN), Util.NIL_UUID);
             } else {
                 if(IRopeNode.fromEntity(selected).isConnectedTo(entity)) {
@@ -75,7 +75,7 @@ public class RopeItem extends Item {
                     return true;
                 }
 
-                IRopeNode.fromEntity(selected).addConnectionWith(entity);
+                IRopeNode.fromEntity(selected).connectWith(entity);
                 user.sendSystemMessage(new TranslatableText("commands.connect.entities.connected", selected.getName(), entity.getName()).formatted(Formatting.GREEN), Util.NIL_UUID);
             }
 

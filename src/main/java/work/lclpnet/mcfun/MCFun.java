@@ -5,7 +5,7 @@ import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import work.lclpnet.mcfun.cmd.MCCommands;
+import work.lclpnet.mcfun.cmd.base.MCCommands;
 import work.lclpnet.mcfun.event.LeftClickAirCallback;
 import work.lclpnet.mcfun.item.MCItems;
 import work.lclpnet.mcfun.item.RopeItem;

@@ -12,6 +12,8 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import work.lclpnet.mcfun.asm.type.IRopeNode;
+import work.lclpnet.mcfun.cmd.base.CommandBase;
+import work.lclpnet.mcfun.cmd.base.MCCommands;
 
 import static net.minecraft.server.command.CommandManager.argument;
 
@@ -51,7 +53,7 @@ public class CommandDisconnect extends CommandBase {
 
         if(!firstNode.isConnectedTo(second) && !secondNode.isConnectedTo(first)) throw ENTITIES_NOT_LINKED.create();
 
-        firstNode.removeConnectionWith(second);
+        firstNode.disconnectFrom(second);
 
         MutableText feedback = new TranslatableText("commands.disconnect.entities.disconnected", firstEntity.getName(), secondEntity.getName()).formatted(Formatting.GREEN);
         ctx.getSource().sendFeedback(feedback, true);

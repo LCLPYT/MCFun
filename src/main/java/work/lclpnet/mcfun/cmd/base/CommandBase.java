@@ -1,4 +1,4 @@
-package work.lclpnet.mcfun.cmd;
+package work.lclpnet.mcfun.cmd.base;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;

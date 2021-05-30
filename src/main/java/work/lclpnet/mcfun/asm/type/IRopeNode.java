@@ -40,7 +40,7 @@ public interface IRopeNode {
      *
      * @param other The other entity.
      */
-    default void addConnectionWith(final LivingEntity other) {
+    default void connectWith(final LivingEntity other) {
         Objects.requireNonNull(other);
         if(isConnectedTo(other)) return;
 
@@ -63,7 +63,7 @@ public interface IRopeNode {
      *
      * @param other The other entity.
      */
-    default void removeConnectionWith(LivingEntity other) {
+    default void disconnectFrom(LivingEntity other) {
         Objects.requireNonNull(other);
 
         removeRopeConnection(other);

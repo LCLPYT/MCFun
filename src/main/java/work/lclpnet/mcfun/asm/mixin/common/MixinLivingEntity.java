@@ -105,7 +105,7 @@ public class MixinLivingEntity implements IRopeNode {
 
         // actually remove the connections (after iteration, to prevent ConcurrentModificationException)
         if (!removeLater.isEmpty()) {
-            removeLater.forEach(this::removeConnectionWith);
+            removeLater.forEach(this::disconnectFrom);
             removeLater.clear();
         }
 
