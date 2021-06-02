@@ -21,7 +21,7 @@ import static net.minecraft.server.command.CommandManager.argument;
 public class CommandSetRopeLength extends CommandBase {
 
     public CommandSetRopeLength() {
-        super("set-rope-length");
+        super("setropelength");
     }
 
     @Override

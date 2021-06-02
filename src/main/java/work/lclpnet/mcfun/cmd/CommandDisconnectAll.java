@@ -15,8 +15,6 @@ import work.lclpnet.mcfun.cmd.base.CommandBase;
 import work.lclpnet.mcfun.cmd.base.MCCommands;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 import static net.minecraft.server.command.CommandManager.argument;
 
@@ -59,13 +57,7 @@ public class CommandDisconnectAll extends CommandBase {
             if(throwException) throw new SimpleCommandExceptionType(new TranslatableText("commands.connect.entities.not-living", entity.getEntityName())).create();
             else return false;
         }
-
-        IRopeNode node = IRopeNode.fromEntity((LivingEntity) entity);
-        Set<LivingEntity> ropeConnectedEntities = node.getRopeConnectedEntities();
-        if(ropeConnectedEntities == null || ropeConnectedEntities.isEmpty()) return false;
-
-        new HashSet<>(ropeConnectedEntities).forEach(node::disconnectFrom);
-        return true;
+        return IRopeNode.fromEntity((LivingEntity) entity).removeAllRopeConnectionPairs();
     }
 
 }

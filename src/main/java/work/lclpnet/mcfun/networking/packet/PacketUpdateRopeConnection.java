@@ -52,7 +52,13 @@ public class PacketUpdateRopeConnection extends MCPacket implements IClientPacke
 
             if(action == Action.CONNECT) {
                 Objects.requireNonNull(this.rope, String.format("Rope might not be null with %s packets.", action));
-                IRopeNode.fromEntity(entity).addClientRopeConnection(this.toEntityId, this.rope);
+
+                LivingEntity other = (LivingEntity) world.getEntityById(this.toEntityId);
+                Rope otherRope = null;
+                if(other != null)
+                    otherRope = IRopeNode.fromEntity(other).getClientRopeConnection(this.entityId);
+
+                IRopeNode.fromEntity(entity).addClientRopeConnection(this.toEntityId, otherRope == null ? this.rope : otherRope);
             }
             else if(action == Action.DISCONNECT) {
                 IRopeNode.fromEntity(entity).removeClientRopeConnection(this.toEntityId);

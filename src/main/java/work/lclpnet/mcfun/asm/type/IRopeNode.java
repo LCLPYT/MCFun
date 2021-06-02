@@ -9,6 +9,7 @@ import work.lclpnet.mcfun.util.Rope;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -43,6 +44,23 @@ public interface IRopeNode {
         if(connections == null) return false;
 
         return connections.stream().anyMatch(connected -> connected.equals(entity));
+    }
+
+    /**
+     * Removes all rope connections from this entity and from all entities connected with it.
+     * @return True, if there were any rope connections which were removed, false otherwise.
+     */
+    default boolean removeAllRopeConnectionPairs() {
+        Set<LivingEntity> connected = getRopeConnectedEntities();
+        if(connected == null) return false;
+
+        boolean empty = connected.isEmpty();
+
+        LivingEntity thisLiving = castTo(this, LivingEntity.class);
+        if(thisLiving.world.isClient) new HashSet<>(connected).forEach(entity -> removeClientRopeConnection(entity.getEntityId()));
+        else new HashSet<>(connected).forEach(this::disconnectFrom);
+
+        return !empty;
     }
 
     /**

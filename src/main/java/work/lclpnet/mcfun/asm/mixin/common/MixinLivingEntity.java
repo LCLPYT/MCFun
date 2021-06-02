@@ -25,6 +25,7 @@ import work.lclpnet.mcfun.networking.packet.PacketUpdateRopeConnection;
 import work.lclpnet.mcfun.util.Rope;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static work.lclpnet.mcfun.asm.InstanceMixinHelper.castTo;
 import static work.lclpnet.mcfun.asm.InstanceMixinHelper.isInstance;
@@ -55,7 +56,7 @@ public class MixinLivingEntity implements IRopeNode {
                     ropeConnected = new HashMap<>();
                 } else if(ropeConnected.containsKey(livingById)) return;
 
-                ropeConnected.put(livingById, rope);
+                ropeConnected.put(livingById, rope); // on the client, convert ids to entities TODO make ropes equal
             });
         }
         return ropeConnected == null ? null : ropeConnected.keySet();
@@ -63,18 +64,20 @@ public class MixinLivingEntity implements IRopeNode {
 
     @Override
     public void addServerRopeConnection(LivingEntity other, Rope rope) {
-        LivingEntity living = castTo(this, LivingEntity.class);
-        if(living.world.isClient) throw new IllegalStateException("Wrong method for client.");
+        LivingEntity thisLiving = castTo(this, LivingEntity.class);
+        if(thisLiving.world.isClient) throw new IllegalStateException("Wrong method for client.");
 
         Objects.requireNonNull(other);
         Objects.requireNonNull(rope);
+
+        if(isConnectedTo(other)) return; // already connected with each other
 
         if (this.ropeConnected == null) this.ropeConnected = new HashMap<>();
 
         this.ropeConnected.put(other, rope);
         removeRopeTagsInvolving(other);
 
-        MCNetworking.sendToAllTrackingIncludingSelf(living, PacketUpdateRopeConnection.createConnectPacket(living, other, rope));
+        MCNetworking.sendToAllTrackingIncludingSelf(thisLiving, PacketUpdateRopeConnection.createConnectPacket(thisLiving, other, rope));
     }
 
     @Override
@@ -83,7 +86,7 @@ public class MixinLivingEntity implements IRopeNode {
         if(living.world.isClient) throw new IllegalStateException("Wrong method for client.");
 
         Objects.requireNonNull(other);
-        if(ropeConnected == null || !isConnectedTo(other)) return;
+        if(ropeConnected == null || !isConnectedTo(other)) return; // not connected with each other
 
         this.ropeConnected.remove(other);
         removeRopeTagsInvolving(other);
@@ -165,11 +168,11 @@ public class MixinLivingEntity implements IRopeNode {
         }
 
         ListIterator<Tag> iterator = ropeConnectionsTag.listIterator();
-        while (iterator.hasNext()) {
+        while (iterator.hasNext()) { // iterate tags, where one tag represents one rope connection
             Tag tag = iterator.next();
             if(!(tag instanceof CompoundTag)) {
                 iterator.remove();
-                return;
+                continue;
             }
 
             CompoundTag connTag = (CompoundTag) tag;
@@ -178,21 +181,14 @@ public class MixinLivingEntity implements IRopeNode {
                 UUID uuid = connTag.getUuid("UUID");
                 Entity entity = ((ServerWorld) thisEntity.world).getEntity(uuid);
                 if (entity instanceof LivingEntity) {
-                    Rope rope = IRopeNode.fromEntity((LivingEntity) entity).getRopeConnection(thisEntity);
-                    if(rope == null) {
-                        if(connTag.contains("Rope")) rope = Rope.readFrom(connTag.getCompound("Rope"));
-                        else if(thisEntity.age > 100) rope = new Rope();
-                    }
+                    // Rope should be the same instance for both entities
+                    Rope rope = Rope.readFrom(connTag.getCompound("Rope"));
+                    iterator.remove();
 
-                    if(rope != null) {
-                        iterator.remove();
-                        this.addServerRopeConnection((LivingEntity) entity, rope);
-                        return;
-                    }
+                    this.addServerRopeConnection((LivingEntity) entity, rope);
+                    IRopeNode.fromEntity((LivingEntity) entity).addServerRopeConnection(thisEntity, rope);
                 }
             }
-
-            if (thisEntity.age > 100) iterator.remove();
         }
 
         if(thisEntity.age > 100) this.ropeConnectionsTag = null;
@@ -204,39 +200,35 @@ public class MixinLivingEntity implements IRopeNode {
         /* check if any rope connected entity is dead and if the rope should be removed */
         if(ropeConnected == null || ropeConnected.isEmpty()) return;
 
-        LivingEntity living = castTo(this, LivingEntity.class);
-
-        Set<LivingEntity> removeLater = new HashSet<>();
+        LivingEntity thisLiving = castTo(this, LivingEntity.class);
 
         // remove all ropes, if the entity is dead
-        if (!living.isAlive()) removeLater.addAll(ropeConnected.keySet());
+        if (!thisLiving.isAlive()) {
+            removeAllRopeConnectionPairs();
+            return;
+        }
 
         // remove any rope connection where the connected entity is dead
-        ropeConnected.keySet().stream()
+        List<LivingEntity> removal = ropeConnected.keySet().stream()
                 .filter(entity -> !entity.isAlive())
-                .forEach(removeLater::add);
-
-        // actually remove the connections (after iteration, to prevent ConcurrentModificationException)
-        if (!removeLater.isEmpty()) {
-            removeLater.forEach(this::disconnectFrom);
-            removeLater.clear();
-        }
+                .collect(Collectors.toList());
+        removal.forEach(this::disconnectFrom);
 
         LivingEntity nearestConnected = null;
         boolean shouldCancelNearest = false;
 
-        if(isInstance(living, PathAwareEntity.class)) {
+        if(isInstance(thisLiving, PathAwareEntity.class)) {
             Pair<LivingEntity, Double> nearestEntry = ropeConnected.keySet().stream()
-                    .map(entity -> new Pair<>(entity, entity.squaredDistanceTo(living)))
+                    .map(entity -> new Pair<>(entity, entity.squaredDistanceTo(thisLiving)))
                     .min(Comparator.comparing(Pair::getRight))
                     .orElse(null);
 
             if(nearestEntry != null) {
                 nearestConnected = nearestEntry.getLeft();
 
-                if(nearestConnected.world == living.world) {
+                if(nearestConnected.world == thisLiving.world) {
                     Rope rope = ropeConnected.get(nearestConnected);
-                    shouldCancelNearest = updateLeashLikeBehaviour(castTo(living, PathAwareEntity.class), nearestConnected, nearestEntry.getRight(), rope);
+                    shouldCancelNearest = updateLeashLikeBehaviour(castTo(thisLiving, PathAwareEntity.class), nearestConnected, nearestEntry.getRight(), rope);
                 }
             }
         }
@@ -245,27 +237,28 @@ public class MixinLivingEntity implements IRopeNode {
         final boolean cancelLogicWithNearest = shouldCancelNearest;
 
         ropeConnected.forEach((entity, rope) -> {
-            if(entity.world != living.world || (entity.equals(nearest) && cancelLogicWithNearest)) return;
+            if(entity.world != thisLiving.world || (entity.equals(nearest) && cancelLogicWithNearest)) return;
 
             // check rope distance violation
-            double distanceSquared = entity.squaredDistanceTo(living);
+            double distanceSquared = entity.squaredDistanceTo(thisLiving);
             if(distanceSquared <= rope.getLengthSquared()) return;
 
             // do rope pull
             double distance = Math.sqrt(distanceSquared);
-            double d = (entity.getX() - living.getX()) / distance;
-            double e = (entity.getY() - living.getY()) / distance;
-            double g = (entity.getZ() - living.getZ()) / distance;
-            living.setVelocity(living.getVelocity().add(
+            double d = (entity.getX() - thisLiving.getX()) / distance;
+            double e = (entity.getY() - thisLiving.getY()) / distance;
+            double g = (entity.getZ() - thisLiving.getZ()) / distance;
+            thisLiving.setVelocity(thisLiving.getVelocity().add(
                     Math.copySign(d * d * 0.4D, d),
                     Math.copySign(e * e * 0.4D, e),
                     Math.copySign(g * g * 0.4D, g)
             ));
-            living.velocityModified = true;
+            thisLiving.velocityModified = true;
         });
     }
 
     /**
+     * Imitates the vanilla minecraft leash behaviour.
      *
      * @param mob This class instance, casted to PathAwareEntity.
      * @param nearestConnected The nearest rope connected entity.
