@@ -4,13 +4,17 @@
   "commands.connect.entities.connected": "%s wurde mit %s verbunden.",
   "commands.disconnect.entities.disconnected": "Disconnected %s from %s",
   "commands.connect.entities.not-living": "Kein LivingEntity: %s",
-  "commands.disconnect.entities.equal": "Bitte wähle zwei verschiedene Entities.",
+  "commands.disconnect.entities.equal": "Bitte wa\u0308hle zwei verschiedene Entities.",
   "commands.disconnect.entities.not-linked": "Die beiden Entities sind nicht verbunden.",
   "commands.disconnect_all.success": "Alle Seilverbindungen von %s wurden erfolgreich entfernt.",
   "commands.disconnect_all.no_connections": "%s hat keine Seilverbindungen",
   "commands.disconnect_all.success_multiple": "Alle Seilverbindungen von %s Entities wurden erfolgreich entfernt.",
-  "commands.set_rope_length.success": "Die Seillänge wurde erfolgreich auf %.2f geändert.",
+  "commands.set_rope_length.success": "Die Seilla\u0308nge wurde erfolgreich auf %.2f gea\u0308ndert.",
   "item.mcfun.rope": "Seil",
-  "item.mcfun.rope.selected": "%s wurde ausgewählt.",
-  "item.mcfun.rope.equal": "Bitte wähle ein anderes Wesen."
+  "item.mcfun.rope.selected": "%s wurde ausgewa\u0308hlt.",
+  "item.mcfun.rope.equal": "Bitte wa\u0308hle ein anderes Wesen.",
+  "item.mcfun.rope.help.select": "Linksklick, um ein Wesen auszuwa\u0308hlen.",
+  "item.mcfun.rope.help.connect": "Rechtsklick, um ein anderes Wesen zu verbinden.",
+  "item.mcfun.rope.help.disconnect": "Ducken + Rechtsklick um ein anderes Wesen zu trennen.",
+  "item.mcfun.rope.help.current_selection": "Ausgewa\u0308hlt: "
 }
