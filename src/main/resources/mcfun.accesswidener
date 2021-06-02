@@ -13,3 +13,6 @@ accessible method net/minecraft/entity/mob/PathAwareEntity getRunFromLeashSpeed 
 
 # PlayerEntity
 accessible method net/minecraft/entity/player/PlayerEntity isImmobile ()Z
+
+# ThreadedAnvilChunkStorage
+accessible class net/minecraft/server/world/ThreadedAnvilChunkStorage$EntityTracker

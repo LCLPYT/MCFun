@@ -1,5 +1,7 @@
 package work.lclpnet.mcfun.asm.type;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.entity.LivingEntity;
 import work.lclpnet.mcfun.networking.MCNetworking;
 import work.lclpnet.mcfun.networking.packet.PacketUpdateRopeConnection;
@@ -17,12 +19,22 @@ public interface IRopeNode {
     @Nullable
     Set<LivingEntity> getRopeConnectedEntities();
 
-    void addRopeConnection(LivingEntity entity, Rope rope);
+    void addServerRopeConnection(LivingEntity entity, Rope rope);
 
-    void removeRopeConnection(LivingEntity entity);
+    void removeServerRopeConnection(LivingEntity entity);
+
+    @Environment(EnvType.CLIENT)
+    void addClientRopeConnection(int entityId, Rope rope);
+
+    @Environment(EnvType.CLIENT)
+    void removeClientRopeConnection(int entityId);
 
     @Nullable
     Rope getRopeConnection(LivingEntity other);
+
+    @Nullable
+    @Environment(EnvType.CLIENT)
+    Rope getClientRopeConnection(int entityId);
 
     default boolean isConnectedTo(LivingEntity entity) {
         Objects.requireNonNull(entity);
@@ -52,8 +64,8 @@ public interface IRopeNode {
             MCNetworking.sendToAllTrackingIncludingSelf(entity, PacketUpdateRopeConnection.createUpdatePropertiesPacket(entity, other, updatedRope));
         });
 
-        addRopeConnection(other, rope);
-        fromEntity(other).addRopeConnection(entity, rope);
+        addServerRopeConnection(other, rope);
+        fromEntity(other).addServerRopeConnection(entity, rope);
     }
 
     /**
@@ -66,8 +78,8 @@ public interface IRopeNode {
     default void disconnectFrom(LivingEntity other) {
         Objects.requireNonNull(other);
 
-        removeRopeConnection(other);
-        fromEntity(other).removeRopeConnection(castTo(this, LivingEntity.class));
+        removeServerRopeConnection(other);
+        fromEntity(other).removeServerRopeConnection(castTo(this, LivingEntity.class));
     }
 
     @Nonnull

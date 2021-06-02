@@ -27,7 +27,7 @@ public class PacketUpdateRopeConnection extends MCPacket implements IClientPacke
     private final Action action;
     private final int entityId, toEntityId;
     @Nullable
-    private Rope rope;
+    private final Rope rope;
 
     protected PacketUpdateRopeConnection(Action action, int entityId, int toEntityId, @Nullable Rope rope) {
         super(ID);
@@ -40,30 +40,29 @@ public class PacketUpdateRopeConnection extends MCPacket implements IClientPacke
     @Environment(EnvType.CLIENT)
     @Override
     public void handleClient(MinecraftClient client, ClientPlayNetworkHandler handler, PacketSender sender) {
-        ClientWorld world = client.world;
-        if(world == null) throw new IllegalStateException("Client world is null");
+        ClientWorld world = handler.getWorld();
 
         client.execute(() -> {
-            LivingEntity entity = (LivingEntity) client.world.getEntityById(this.entityId);
-            LivingEntity connectTo = (LivingEntity) client.world.getEntityById(this.toEntityId);
+            LivingEntity entity = (LivingEntity) world.getEntityById(this.entityId);
 
             if(entity == null) {
                 System.err.printf("Entity with id %s is unknown to the client.%n", this.entityId);
                 return;
             }
-            if(connectTo == null) {
-                System.err.printf("Entity with id %s is unknown to the client.%n", this.toEntityId);
-                return;
-            }
 
             if(action == Action.CONNECT) {
                 Objects.requireNonNull(this.rope, String.format("Rope might not be null with %s packets.", action));
-                IRopeNode.fromEntity(entity).addRopeConnection(connectTo, this.rope);
+                IRopeNode.fromEntity(entity).addClientRopeConnection(this.toEntityId, this.rope);
             }
-            else if(action == Action.DISCONNECT) IRopeNode.fromEntity(entity).removeRopeConnection(connectTo);
+            else if(action == Action.DISCONNECT) {
+                IRopeNode.fromEntity(entity).removeClientRopeConnection(this.toEntityId);
+            }
             else if(action == Action.UPDATE_PROPERTIES) {
                 Objects.requireNonNull(this.rope, String.format("Rope might not be null with %s packets.", action));
-                Rope rope = IRopeNode.fromEntity(entity).getRopeConnection(connectTo);
+
+                Rope rope = IRopeNode.fromEntity(entity).getClientRopeConnection(this.toEntityId);
+                if(rope == null) throw new IllegalStateException("Trying to update a rope, which does not exist on the client.");
+
                 rope.acceptUpdate(this.rope);
             }
         });

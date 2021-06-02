@@ -1,10 +1,17 @@
 package work.lclpnet.mcfun.asm.mixin.common;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.passive.TameableEntity;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
@@ -25,54 +32,111 @@ import static work.lclpnet.mcfun.asm.InstanceMixinHelper.isInstance;
 @Mixin(LivingEntity.class)
 public class MixinLivingEntity implements IRopeNode {
 
+    @Nullable
     private Map<LivingEntity, Rope> ropeConnected = null;
+    @Nullable
+    private Map<Integer, Rope> ropeConnectedClient = null;
+    @Nullable
+    private ListTag ropeConnectionsTag = null;
+
+    /* IRopeNode implementation */
 
     @Nullable
     @Override
     public Set<LivingEntity> getRopeConnectedEntities() {
+        LivingEntity thisLiving = castTo(this, LivingEntity.class);
+        if(thisLiving.world.isClient && ropeConnectedClient != null) {
+            ropeConnectedClient.forEach((entityId, rope) -> {
+                Entity byId = thisLiving.world.getEntityById(entityId);
+                if(!(byId instanceof LivingEntity)) return;
+
+                LivingEntity livingById = (LivingEntity) byId;
+                if(ropeConnected == null) {
+                    ropeConnected = new HashMap<>();
+                } else if(ropeConnected.containsKey(livingById)) return;
+
+                ropeConnected.put(livingById, rope);
+            });
+        }
         return ropeConnected == null ? null : ropeConnected.keySet();
     }
 
     @Override
-    public void addRopeConnection(LivingEntity other, Rope rope) {
+    public void addServerRopeConnection(LivingEntity other, Rope rope) {
+        LivingEntity living = castTo(this, LivingEntity.class);
+        if(living.world.isClient) throw new IllegalStateException("Wrong method for client.");
+
         Objects.requireNonNull(other);
         Objects.requireNonNull(rope);
 
         if (this.ropeConnected == null) this.ropeConnected = new HashMap<>();
 
         this.ropeConnected.put(other, rope);
+        removeRopeTagsInvolving(other);
 
-        LivingEntity living = castTo(this, LivingEntity.class);
-        if(living.world.isClient) return;
-
-        // On server, change has to be sent to clients
         MCNetworking.sendToAllTrackingIncludingSelf(living, PacketUpdateRopeConnection.createConnectPacket(living, other, rope));
     }
 
     @Override
-    public void removeRopeConnection(LivingEntity other) {
-        Objects.requireNonNull(other);
-        if(ropeConnected == null) return;
+    public void removeServerRopeConnection(LivingEntity other) {
+        LivingEntity living = castTo(this, LivingEntity.class);
+        if(living.world.isClient) throw new IllegalStateException("Wrong method for client.");
 
-        if(!isConnectedTo(other)) return;
+        Objects.requireNonNull(other);
+        if(ropeConnected == null || !isConnectedTo(other)) return;
 
         this.ropeConnected.remove(other);
+        removeRopeTagsInvolving(other);
 
-        LivingEntity living = castTo(this, LivingEntity.class);
-        if(living.world.isClient) return;
-
-        // On server, change has to be sent to clients
         MCNetworking.sendToAllTrackingIncludingSelf(living, PacketUpdateRopeConnection.createDisconnectPacket(living, other));
+    }
+
+    @Environment(EnvType.CLIENT)
+    @Override
+    public void addClientRopeConnection(int entityId, Rope rope) {
+        Objects.requireNonNull(rope);
+        if(ropeConnectedClient == null) ropeConnectedClient = new HashMap<>();
+
+        ropeConnectedClient.put(entityId, rope);
+    }
+
+    @Environment(EnvType.CLIENT)
+    @Override
+    public void removeClientRopeConnection(int entityId) {
+        if(ropeConnectedClient != null) ropeConnectedClient.remove(entityId);
+        if(ropeConnected != null) {
+            LivingEntity thisLiving = castTo(this, LivingEntity.class);
+            Entity other = thisLiving.world.getEntityById(entityId);
+            if(other instanceof LivingEntity) this.ropeConnected.remove(other);
+        }
     }
 
     @Nullable
     @Override
     public Rope getRopeConnection(LivingEntity other) {
         Objects.requireNonNull(other);
-        return ropeConnected.get(other);
+        return ropeConnected == null ? null : ropeConnected.get(other);
     }
 
-    // Mixin for applying rope force
+    @Environment(EnvType.CLIENT)
+    @Nullable
+    @Override
+    public Rope getClientRopeConnection(int entityId) {
+        return ropeConnectedClient == null ? null : ropeConnectedClient.get(entityId);
+    }
+
+    /* Cleanup tag data */
+
+    private void removeRopeTagsInvolving(LivingEntity other) {
+        if(ropeConnectionsTag == null) return;
+
+        ropeConnectionsTag.removeIf(tag -> tag instanceof CompoundTag
+                && ((CompoundTag) tag).containsUuid("UUID")
+                && other.getUuid().equals(((CompoundTag) tag).getUuid("UUID")));
+    }
+
+    /* Tick ropes */
+
     @Inject(
             method = "tick()V",
             at = @At("RETURN")
@@ -81,11 +145,60 @@ public class MixinLivingEntity implements IRopeNode {
         LivingEntity entity = castTo(this, LivingEntity.class);
         if (entity.world.isClient) return;
 
+        deserializeRopeConnectionsTag(entity);
+
         this.updateRopes();
         if (isInstance(entity, MobEntity.class) && entity.age % 5 == 0) {
             castTo(entity, MobEntity.class).updateGoalControls();
         }
     }
+
+    /* Try to deserialize rope data */
+
+    private void deserializeRopeConnectionsTag(LivingEntity thisEntity) {
+        if (this.ropeConnectionsTag == null || !(thisEntity.world instanceof ServerWorld)) return;
+        // Server only
+
+        if(ropeConnectionsTag.isEmpty()) {
+            this.ropeConnectionsTag = null;
+            return;
+        }
+
+        ListIterator<Tag> iterator = ropeConnectionsTag.listIterator();
+        while (iterator.hasNext()) {
+            Tag tag = iterator.next();
+            if(!(tag instanceof CompoundTag)) {
+                iterator.remove();
+                return;
+            }
+
+            CompoundTag connTag = (CompoundTag) tag;
+
+            if (connTag.containsUuid("UUID")) {
+                UUID uuid = connTag.getUuid("UUID");
+                Entity entity = ((ServerWorld) thisEntity.world).getEntity(uuid);
+                if (entity instanceof LivingEntity) {
+                    Rope rope = IRopeNode.fromEntity((LivingEntity) entity).getRopeConnection(thisEntity);
+                    if(rope == null) {
+                        if(connTag.contains("Rope")) rope = Rope.readFrom(connTag.getCompound("Rope"));
+                        else if(thisEntity.age > 100) rope = new Rope();
+                    }
+
+                    if(rope != null) {
+                        iterator.remove();
+                        this.addServerRopeConnection((LivingEntity) entity, rope);
+                        return;
+                    }
+                }
+            }
+
+            if (thisEntity.age > 100) iterator.remove();
+        }
+
+        if(thisEntity.age > 100) this.ropeConnectionsTag = null;
+    }
+
+    /* Rope force logic */
 
     private void updateRopes() {
         /* check if any rope connected entity is dead and if the rope should be removed */
@@ -189,4 +302,34 @@ public class MixinLivingEntity implements IRopeNode {
         return false;
     }
 
+    /* Save and read ropes */
+
+    @Inject(
+            method = "writeCustomDataToTag(Lnet/minecraft/nbt/CompoundTag;)V",
+            at = @At("RETURN")
+    )
+    public void onWriteCustomData(CompoundTag tag, CallbackInfo ci) {
+        if(this.ropeConnected != null && !this.ropeConnected.isEmpty()) {
+            ListTag list = new ListTag();
+
+            ropeConnected.forEach((livingEntity, rope) -> {
+                CompoundTag connTag = new CompoundTag();
+                connTag.putUuid("UUID", livingEntity.getUuid());
+                connTag.put("Rope", rope.writeTo(new CompoundTag()));
+                list.add(connTag);
+            });
+
+            tag.put("RopeConnections", list);
+        }
+    }
+
+    @Inject(
+            method = "readCustomDataFromTag(Lnet/minecraft/nbt/CompoundTag;)V",
+            at = @At("RETURN")
+    )
+    public void onReadCustomData(CompoundTag compound, CallbackInfo ci) {
+        if(compound.contains("RopeConnections", 9)) {
+            this.ropeConnectionsTag = compound.getList("RopeConnections", 10);
+        }
+    }
 }

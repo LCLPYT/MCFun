@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.network.Packet;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
@@ -73,6 +74,18 @@ public class MCNetworking {
         // if the entity is a player, the packet will not be sent to the player, since players do not track themselves.
         if (living instanceof ServerPlayerEntity)
             MCNetworking.sendPacketTo(packet, castTo(living, ServerPlayerEntity.class));
+    }
+
+    public static Packet<?> createVanillaS2CPacket(MCPacket packet) {
+        Objects.requireNonNull(packet, "Packet cannot be null");
+
+        Identifier channelName = packet.getIdentifier();
+        Objects.requireNonNull(channelName, "Channel name cannot be null");
+
+        PacketByteBuf buf = PacketByteBufs.create();
+        packet.encodeTo(buf);
+
+        return ServerPlayNetworking.createS2CPacket(channelName, buf);
     }
 
     @Environment(EnvType.CLIENT)
