@@ -12,5 +12,9 @@
   "commands.set_rope_length.success": "Successfully changed the rope length to %.2f.",
   "item.mcfun.rope": "Rope",
   "item.mcfun.rope.selected": "Selected %s.",
-  "item.mcfun.rope.equal": "Please choose a different entity!"
+  "item.mcfun.rope.equal": "Please choose a different entity!",
+  "item.mcfun.rope.help.select": "Left click an entity to select it.",
+  "item.mcfun.rope.help.connect": "Right click another entity to connect them.",
+  "item.mcfun.rope.help.disconnect": "Sneak + right click another entity to disconnect them.",
+  "item.mcfun.rope.help.current_selection": "Selected: "
 }

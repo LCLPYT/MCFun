@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import work.lclpnet.mcfun.asm.type.IRopeNode;
@@ -33,12 +34,12 @@ public class MCFun implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> MCCommands.registerCommands(dispatcher));
 
 		AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-			if(world.isClient || !(entity instanceof LivingEntity)) return ActionResult.PASS;
+			if(world.isClient || !(entity instanceof LivingEntity) || !(player instanceof ServerPlayerEntity)) return ActionResult.PASS;
 
 			ItemStack stack = player.getStackInHand(Hand.MAIN_HAND);
 			if(stack == null || stack.isEmpty() || !stack.getItem().equals(MCItems.ROPE_ITEM)) return ActionResult.PASS;
 
-			RopeItem.select(player, (LivingEntity) entity);
+			RopeItem.select((ServerPlayerEntity) player, (LivingEntity) entity);
 			return ActionResult.SUCCESS;
 		});
 
@@ -48,17 +49,17 @@ public class MCFun implements ModInitializer {
 			ItemStack stack = player.getStackInHand(Hand.MAIN_HAND);
 			if(stack == null || stack.isEmpty() || !stack.getItem().equals(MCItems.ROPE_ITEM)) return ActionResult.PASS;
 
-			RopeItem.select(player, player);
+			RopeItem.select((ServerPlayerEntity) player, player);
 			return ActionResult.PASS;
 		});
 
 		UseItemAirCallback.EVENT.register((player, world, hand) -> {
-			if(world.isClient) return ActionResult.PASS;
+			if(world.isClient || !(player instanceof ServerPlayerEntity)) return ActionResult.PASS;
 
 			ItemStack stack = player.getStackInHand(hand);
 			if(stack == null || stack.isEmpty() || !stack.getItem().equals(MCItems.ROPE_ITEM)) return ActionResult.PASS;
 
-			return RopeItem.useOn(player, player) ? ActionResult.FAIL : ActionResult.PASS;
+			return RopeItem.useOn((ServerPlayerEntity) player, player) ? ActionResult.FAIL : ActionResult.PASS;
 		});
 
 		EntityTrackedSpawnPacketsCallback.EVENT.register((sender, entity) -> {

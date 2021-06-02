@@ -13,6 +13,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import work.lclpnet.mcfun.networking.packet.PacketLeftClickAir;
+import work.lclpnet.mcfun.networking.packet.PacketRopeSelection;
 import work.lclpnet.mcfun.networking.packet.PacketUpdateRopeConnection;
 import work.lclpnet.mcfun.networking.packet.PacketUseItemAir;
 
@@ -32,6 +33,7 @@ public class MCNetworking {
         register(PacketUpdateRopeConnection.ID, new PacketUpdateRopeConnection.Decoder());
         register(PacketLeftClickAir.ID, buffer -> new PacketLeftClickAir());
         register(PacketUseItemAir.ID, new PacketUseItemAir.Decoder());
+        register(PacketRopeSelection.ID, new PacketRopeSelection.Decoder());
     }
 
     /* */
