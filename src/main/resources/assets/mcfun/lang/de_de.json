@@ -11,8 +11,6 @@
   "commands.disconnect_all.success_multiple": "Alle Seilverbindungen von %s Entities wurden erfolgreich entfernt.",
   "commands.set_rope_length.success": "Die Seillänge wurde erfolgreich auf %.2f geändert.",
   "item.mcfun.rope": "Seil",
-  "item.mcfun.rope.selected": "%s wurde ausgewählt. Rechtsklicke ein anderes Wesen, um sie zu verbinden.",
-  "item.mcfun.rope.selected_disconnect": "%s wurde ausgewählt. Ducke dich and rechtsklicke ein anderes Wesen, um sie zu trennen.",
-  "item.mcfun.rope.not_connected": "%s hat keine Seilverbindungen.",
+  "item.mcfun.rope.selected": "%s wurde ausgewählt.",
   "item.mcfun.rope.equal": "Bitte wähle ein anderes Wesen."
 }

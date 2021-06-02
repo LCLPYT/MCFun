@@ -11,8 +11,6 @@
   "commands.disconnect_all.success_multiple": "Successfully disconnected all ropes from %s entities.",
   "commands.set_rope_length.success": "Successfully changed the rope length to %.2f.",
   "item.mcfun.rope": "Rope",
-  "item.mcfun.rope.selected": "Selected %s. Right-click another entity to connect them.",
-  "item.mcfun.rope.selected_disconnect": "Selected %s. Sneak and right-click another entity to disconnect them.",
-  "item.mcfun.rope.not_connected": "%s does not have any rope connections.",
+  "item.mcfun.rope.selected": "Selected %s.",
   "item.mcfun.rope.equal": "Please choose a different entity!"
 }

@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import work.lclpnet.mcfun.event.EntitySpawnPacketsCallback;
+import work.lclpnet.mcfun.event.EntityTrackedSpawnPacketsCallback;
 
 import java.util.function.Consumer;
 
@@ -25,7 +25,7 @@ public class MixinEntityTrackerEntry {
             at = @At("RETURN")
     )
     public void onPostSendPackets(Consumer<Packet<?>> sender, CallbackInfo ci) {
-        EntitySpawnPacketsCallback.EVENT.invoker().onSendSpawnPackets(sender, this.entity);
+        EntityTrackedSpawnPacketsCallback.EVENT.invoker().onSendSpawnPackets(sender, this.entity);
     }
 
 }

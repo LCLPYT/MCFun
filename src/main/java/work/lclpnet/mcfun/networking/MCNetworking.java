@@ -14,6 +14,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import work.lclpnet.mcfun.networking.packet.PacketLeftClickAir;
 import work.lclpnet.mcfun.networking.packet.PacketUpdateRopeConnection;
+import work.lclpnet.mcfun.networking.packet.PacketUseItemAir;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +31,7 @@ public class MCNetworking {
     public static void registerPackets() {
         register(PacketUpdateRopeConnection.ID, new PacketUpdateRopeConnection.Decoder());
         register(PacketLeftClickAir.ID, buffer -> new PacketLeftClickAir());
+        register(PacketUseItemAir.ID, new PacketUseItemAir.Decoder());
     }
 
     /* */

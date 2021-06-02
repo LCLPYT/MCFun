@@ -13,7 +13,6 @@ import work.lclpnet.mcfun.asm.type.IRopeNode;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class RopeItem extends Item {
 
@@ -43,18 +42,7 @@ public class RopeItem extends Item {
     public static boolean useOn(PlayerEntity user, LivingEntity entity) {
         LivingEntity selected = selections.get(user);
         if(selected == null) {
-            if(user.isSneaking()) {
-                Set<LivingEntity> connected = IRopeNode.fromEntity(entity).getRopeConnectedEntities();
-                if(connected == null || connected.isEmpty()) {
-                    user.sendSystemMessage(new TranslatableText("item.mcfun.rope.not_connected", entity.getName()).formatted(Formatting.RED), Util.NIL_UUID);
-                    return true;
-                }
-                selections.put(user, entity);
-                user.sendSystemMessage(new TranslatableText("item.mcfun.rope.selected_disconnect", entity.getName()), Util.NIL_UUID);
-            } else {
-                selections.put(user, entity);
-                user.sendSystemMessage(new TranslatableText("item.mcfun.rope.selected", entity.getName()), Util.NIL_UUID);
-            }
+            select(user, entity);
         } else {
             if(entity.equals(selected)) {
                 user.sendSystemMessage(new TranslatableText("item.mcfun.rope.equal").formatted(Formatting.RED), Util.NIL_UUID);
@@ -82,6 +70,11 @@ public class RopeItem extends Item {
             selections.remove(user);
         }
         return false;
+    }
+
+    public static void select(PlayerEntity player, LivingEntity entity) {
+        selections.put(player, entity);
+        player.sendSystemMessage(new TranslatableText("item.mcfun.rope.selected", entity.getName()), Util.NIL_UUID);
     }
 
 }

@@ -56,7 +56,7 @@ public class MixinLivingEntity implements IRopeNode {
                     ropeConnected = new HashMap<>();
                 } else if(ropeConnected.containsKey(livingById)) return;
 
-                ropeConnected.put(livingById, rope); // on the client, convert ids to entities TODO make ropes equal
+                ropeConnected.put(livingById, rope); // on the client, convert ids to entities
             });
         }
         return ropeConnected == null ? null : ropeConnected.keySet();
@@ -260,36 +260,36 @@ public class MixinLivingEntity implements IRopeNode {
     /**
      * Imitates the vanilla minecraft leash behaviour.
      *
-     * @param mob This class instance, casted to PathAwareEntity.
+     * @param thisMob This class instance, casted to PathAwareEntity.
      * @param nearestConnected The nearest rope connected entity.
      * @param rope The rope connection associated with the nearestConnected entity.
      * @return True, if further rope logic should be canceled between the two entities.
      */
-    private boolean updateLeashLikeBehaviour(PathAwareEntity mob, LivingEntity nearestConnected, double distanceSquared, Rope rope) {
+    private boolean updateLeashLikeBehaviour(PathAwareEntity thisMob, LivingEntity nearestConnected, double distanceSquared, Rope rope) {
         Objects.requireNonNull(rope);
 
         // partial content of PathAwareEntity#updateLeash
 
-        mob.setPositionTarget(nearestConnected.getBlockPos(), 5);
-        if(mob instanceof TameableEntity && ((TameableEntity) mob).isInSittingPose()) return true;
+        thisMob.setPositionTarget(nearestConnected.getBlockPos(), 5);
+        if(thisMob instanceof TameableEntity && ((TameableEntity) thisMob).isInSittingPose()) return true;
 
         float distance = (float) Math.sqrt(distanceSquared);
-        mob.updateForLeashLength(distance);
-        if(distance > rope.getLength() + 4.0F) mob.goalSelector.disableControl(Goal.Control.MOVE);
+        thisMob.updateForLeashLength(distance);
+        if(distance > rope.getLength() + 4.0F) thisMob.goalSelector.disableControl(Goal.Control.MOVE);
         else if(distance <= rope.getLength()) {
-            mob.goalSelector.enableControl(Goal.Control.MOVE);
+            thisMob.goalSelector.enableControl(Goal.Control.MOVE);
 
             Vec3d vec3d = new Vec3d(
-                    nearestConnected.getX() - mob.getX(),
-                    nearestConnected.getY() - mob.getY(),
-                    nearestConnected.getZ() - mob.getZ()
+                    nearestConnected.getX() - thisMob.getX(),
+                    nearestConnected.getY() - thisMob.getY(),
+                    nearestConnected.getZ() - thisMob.getZ()
             ).normalize().multiply(Math.max(distance - 2.0F, 0.0F));
 
-            mob.getNavigation().startMovingTo(
-                    mob.getX() + vec3d.x,
-                    mob.getY() + vec3d.y,
-                    mob.getZ() + vec3d.z,
-                    mob.getRunFromLeashSpeed()
+            thisMob.getNavigation().startMovingTo(
+                    thisMob.getX() + vec3d.x,
+                    thisMob.getY() + vec3d.y,
+                    thisMob.getZ() + vec3d.z,
+                    thisMob.getRunFromLeashSpeed()
             );
         }
         return false;
