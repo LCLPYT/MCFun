@@ -95,7 +95,8 @@ tasks.publish.dependsOn({
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			// add all the jars that should be included when publishing to maven
+			artifactId = project.archives_base_name
+
 			artifact(remapJar) {
 				builtBy remapJar
 			}
