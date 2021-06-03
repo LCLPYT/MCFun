@@ -31,3 +31,5 @@ bin/
 # fabric
 
 run/
+repo/
+private.properties
