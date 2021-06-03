@@ -1,7 +1,8 @@
 package work.lclpnet.mcfun.networking.packet;
 
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.minecraft.client.MinecraftClient;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.network.PacketContext;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -24,8 +25,12 @@ public class PacketRopeSelection extends MCPacket implements IClientPacketHandle
         this.entityId = entityId;
     }
 
+    @Environment(EnvType.CLIENT)
     @Override
-    public void handleClient(MinecraftClient client, ClientPlayNetworkHandler handler, PacketSender sender) {
+    public void handleClient(PacketContext ctx) {
+        if(!(ctx instanceof ClientPlayNetworkHandler)) throw new IllegalStateException("Context is invalid");
+        ClientPlayNetworkHandler handler = (ClientPlayNetworkHandler) ctx;
+
         Entity entity = handler.getWorld().getEntityById(this.entityId);
         if(entity instanceof LivingEntity) RopeItem.setClientSelection((LivingEntity) entity);
         else if(this.entityId == 0) RopeItem.setClientSelection(null);

@@ -2,8 +2,7 @@ package work.lclpnet.mcfun.networking.packet;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.minecraft.client.MinecraftClient;
+import net.fabricmc.fabric.api.network.PacketContext;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.LivingEntity;
@@ -39,10 +38,13 @@ public class PacketUpdateRopeConnection extends MCPacket implements IClientPacke
 
     @Environment(EnvType.CLIENT)
     @Override
-    public void handleClient(MinecraftClient client, ClientPlayNetworkHandler handler, PacketSender sender) {
+    public void handleClient(PacketContext ctx) {
+        if(!(ctx instanceof ClientPlayNetworkHandler)) throw new IllegalStateException("Context is invalid");
+        ClientPlayNetworkHandler handler = (ClientPlayNetworkHandler) ctx;
+
         ClientWorld world = handler.getWorld();
 
-        client.execute(() -> {
+        ctx.getTaskQueue().execute(() -> {
             LivingEntity entity = (LivingEntity) world.getEntityById(this.entityId);
 
             if(entity == null) {

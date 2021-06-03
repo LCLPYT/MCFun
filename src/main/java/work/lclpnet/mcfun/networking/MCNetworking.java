@@ -1,13 +1,14 @@
 package work.lclpnet.mcfun.networking;
 
+import io.netty.buffer.Unpooled;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
+import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
+import net.fabricmc.fabric.api.server.PlayerStream;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -48,28 +49,28 @@ public class MCNetworking {
     @Environment(EnvType.CLIENT)
     public static void registerClientPacketHandlers() {
         packetDecoderMap.forEach(
-                (id, serializer) -> ClientPlayNetworking.registerGlobalReceiver(id,
-                        (client, handler, buf, responseSender) -> serializer.handleClient(serializer.decode(buf), client, handler, responseSender))
+                (id, serializer) -> ClientSidePacketRegistry.INSTANCE.register(id,
+                        (context, buf) -> serializer.handleClient(context, serializer.decode(buf)))
         );
     }
 
     public static void registerServerPacketHandlers() {
         packetDecoderMap.forEach(
-                (id, serializer) -> ServerPlayNetworking.registerGlobalReceiver(id,
-                        (server, player, handler, buf, responseSender) -> serializer.handleServer(serializer.decode(buf), server, player, handler, responseSender))
+                (id, serializer) -> ServerSidePacketRegistry.INSTANCE.register(id,
+                        (context, buf) -> serializer.handleServer(context, serializer.decode(buf)))
         );
     }
 
-    public static void sendPacketTo(MCPacket packet, ServerPlayerEntity player) {
-        PacketByteBuf buf = PacketByteBufs.create();
+    public static void sendPacketTo(MCPacket packet, PlayerEntity player) {
+        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
         packet.encodeTo(buf);
-        ServerPlayNetworking.send(player, packet.getIdentifier(), buf);
+        ServerSidePacketRegistry.INSTANCE.sendToPlayer(player, packet.getIdentifier(), buf);
     }
 
     public static void sendToAllTracking(Entity tracked, MCPacket packet) {
         Objects.requireNonNull(tracked);
         Objects.requireNonNull(packet);
-        PlayerLookup.tracking(tracked).forEach(p -> sendPacketTo(packet, p));
+        PlayerStream.watching(tracked).forEach(p -> sendPacketTo(packet, p));
     }
 
     public static void sendToAllTrackingIncludingSelf(LivingEntity living, MCPacket packet) {
@@ -86,16 +87,16 @@ public class MCNetworking {
         Identifier channelName = packet.getIdentifier();
         Objects.requireNonNull(channelName, "Channel name cannot be null");
 
-        PacketByteBuf buf = PacketByteBufs.create();
+        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
         packet.encodeTo(buf);
 
-        return ServerPlayNetworking.createS2CPacket(channelName, buf);
+        return ServerSidePacketRegistry.INSTANCE.toPacket(channelName, buf);
     }
 
     @Environment(EnvType.CLIENT)
     public static void sendPacketToServer(MCPacket packet) {
-        PacketByteBuf buf = PacketByteBufs.create();
+        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
         packet.encodeTo(buf);
-        ClientPlayNetworking.send(packet.getIdentifier(), buf);
+        ClientSidePacketRegistry.INSTANCE.sendToServer(packet.getIdentifier(), buf);
     }
 }

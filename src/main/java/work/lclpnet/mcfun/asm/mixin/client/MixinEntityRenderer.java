@@ -107,7 +107,7 @@ public abstract class MixinEntityRenderer {
         if(rope == null) return;
 
         matrixStack.push();
-        Vec3d vec3d = connected.method_30951(tickDelta);
+        Vec3d vec3d = connected.getCameraPosVec(tickDelta).subtract(0D, 0.5D, 0D); // maybe make it less annoying
         double d = (double)(MathHelper.lerp(tickDelta, livingEntity.bodyYaw, livingEntity.prevBodyYaw) * 0.017453292F) + 1.5707963267948966D;
         Vec3d vec3d2 = livingEntity.method_29919();
         double e = Math.cos(d) * vec3d2.z + Math.sin(d) * vec3d2.x;
@@ -131,10 +131,9 @@ public abstract class MixinEntityRenderer {
         int t = livingEntity.world.getLightLevel(LightType.SKY, blockPos);
         int u = livingEntity.world.getLightLevel(LightType.SKY, blockPos2);
 
-        /* LINEAR ROPE TENSION
-        float approxDistance = 1F / MathHelper.fastInverseSqrt((float) livingEntity.squaredDistanceTo(connected));
-        float ropeTension = Math.max(0F, approxDistance - (MCFun.ROPE_LENGTH * 0.65F)) * 0.2F + 1F;
-        */
+//        LINEAR ROPE TENSION
+//        float approxDistance = 1F / MathHelper.fastInverseSqrt((float) livingEntity.squaredDistanceTo(connected));
+//        float ropeTension = Math.max(0F, approxDistance - (MCFun.ROPE_LENGTH * 0.65F)) * 0.2F + 1F;
 
         // QUADRATIC ROPE TENSION
         float distanceSq = (float) livingEntity.squaredDistanceTo(connected);
