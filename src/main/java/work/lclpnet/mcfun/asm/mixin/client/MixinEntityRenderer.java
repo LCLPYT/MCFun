@@ -107,7 +107,13 @@ public abstract class MixinEntityRenderer {
         if(rope == null) return;
 
         matrixStack.push();
-        Vec3d vec3d = connected.getCameraPosVec(tickDelta).subtract(0D, 0.5D, 0D); // maybe make it less annoying
+
+        Vec3d vec3d = new Vec3d(
+              MathHelper.lerp(tickDelta, connected.prevX, connected.getX()),
+              MathHelper.lerp(tickDelta, connected.prevY, connected.getY()),
+              MathHelper.lerp(tickDelta, connected.prevZ, connected.getZ())
+        ).add(0D, (double) connected.getStandingEyeHeight() * 0.7D, 0D);
+
         double d = (double)(MathHelper.lerp(tickDelta, livingEntity.bodyYaw, livingEntity.prevBodyYaw) * 0.017453292F) + 1.5707963267948966D;
         Vec3d vec3d2 = livingEntity.method_29919();
         double e = Math.cos(d) * vec3d2.z + Math.sin(d) * vec3d2.x;
