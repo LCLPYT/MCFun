@@ -86,8 +86,12 @@ public abstract class MixinEntityRenderer {
         boolean fromPlayer = from instanceof PlayerEntity, toPlayer = to instanceof PlayerEntity;
 
         if(fromPlayer) {
-            if(toPlayer) return MinecraftClient.getInstance().player != null && MinecraftClient.getInstance().player.equals(from);
-            else return true;
+            LivingEntity mcPlayer = MinecraftClient.getInstance().player;
+            boolean selfIncluded = from.equals(mcPlayer) || to.equals(mcPlayer);
+            if(toPlayer) {
+                if (selfIncluded) return MinecraftClient.getInstance().player.equals(from);
+                else return from.getEntityId() > to.getEntityId(); // if observing other players, set an arbitrary order, so that only one rope between the connected players is rendered
+            } else return true;
         } else if(toPlayer) return false;
         else return from.getEntityId() > to.getEntityId();
     }
