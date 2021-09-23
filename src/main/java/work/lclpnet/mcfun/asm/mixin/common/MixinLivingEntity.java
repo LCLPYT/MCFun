@@ -239,21 +239,27 @@ public class MixinLivingEntity implements IRopeNode {
         ropeConnected.forEach((entity, rope) -> {
             if(entity.world != thisLiving.world || (entity.equals(nearest) && cancelLogicWithNearest)) return;
 
+            Entity modVel = thisLiving;
+            if (thisLiving.hasVehicle()) {
+                Entity root = thisLiving.getRootVehicle();
+                if (root != null) modVel = root;
+            }
+
             // check rope distance violation
-            double distanceSquared = entity.squaredDistanceTo(thisLiving);
+            double distanceSquared = entity.squaredDistanceTo(modVel);
             if(distanceSquared <= rope.getLengthSquared()) return;
 
             // do rope pull
             double distance = Math.sqrt(distanceSquared);
-            double d = (entity.getX() - thisLiving.getX()) / distance;
-            double e = (entity.getY() - thisLiving.getY()) / distance;
-            double g = (entity.getZ() - thisLiving.getZ()) / distance;
-            thisLiving.setVelocity(thisLiving.getVelocity().add(
+            double d = (entity.getX() - modVel.getX()) / distance;
+            double e = (entity.getY() - modVel.getY()) / distance;
+            double g = (entity.getZ() - modVel.getZ()) / distance;
+            modVel.setVelocity(modVel.getVelocity().add(
                     Math.copySign(d * d * 0.4D, d),
                     Math.copySign(e * e * 0.4D, e),
                     Math.copySign(g * g * 0.4D, g)
             ));
-            thisLiving.velocityModified = true;
+            modVel.velocityModified = true;
         });
     }
 

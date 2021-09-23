@@ -76,7 +76,7 @@ public abstract class MixinEntityRenderer {
     /**
      * Determines, if a rope from an entity to another should be rendered.
      * Otherwise, there would be two ropes connecting two entities each, which is unwanted.
-     * This method determines, from which entity the rope should start (return value is 'true'). Otherwise this method returns 'false'.
+     * This method determines, from which entity the rope should start (return value is 'true'). Otherwise, this method returns 'false'.
      *
      * @param from The entity from which the rope starts.
      * @param to The entity to which the rope leads.
