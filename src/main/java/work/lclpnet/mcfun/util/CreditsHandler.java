@@ -11,7 +11,7 @@ import java.util.*;
 
 public class CreditsHandler {
 
-    private static final Map<String, Set<LivingEntity>> chained = new HashMap<>();
+    private static final Map<String, ConnectionStore> chained = new HashMap<>();
     private static final Set<LivingEntity> dimensionChangeBlocked = new HashSet<>();
 
     public static void handleCreditsScreenStart(ServerPlayerEntity player) {
@@ -19,10 +19,12 @@ public class CreditsHandler {
         Set<LivingEntity> connected = node.getRopeConnectedEntities();
         if (connected == null || connected.isEmpty()) return;
 
-        Set<LivingEntity> connectedClone = new HashSet<>(connected);
-        chained.put(player.getUuidAsString(), connectedClone);
+        Map<LivingEntity, Rope> connections = new HashMap<>();
+        connected.forEach(en -> connections.put(en, node.getRopeConnection(en)));
+
+        chained.put(player.getUuidAsString(), new ConnectionStore(connections));
         dimensionChangeBlocked.addAll(Rope.getAllMembersInChainExceptSelfOf(player));
-        connectedClone.forEach(node::disconnectFrom);
+        connections.keySet().forEach(node::disconnectFrom);
     }
 
     public static boolean isDimensionChangeBlocked(LivingEntity le) {
@@ -31,11 +33,11 @@ public class CreditsHandler {
 
     public static void handleRespawn(ServerPlayerEntity player) {
         String uuid = player.getUuidAsString();
-        Set<LivingEntity> connected = chained.get(uuid);
-        if (connected == null) return;
+        ConnectionStore store = chained.get(uuid);
+        if (store == null) return;
 
         Set<LivingEntity> chainMembers = new HashSet<>();
-        connected.forEach(en -> chainMembers.addAll(Rope.getAllMembersInChainOf(en)));
+        store.connected.forEach((en, rope) -> chainMembers.addAll(Rope.getAllMembersInChainOf(en)));
 
         final IRopeNode node = IRopeNode.fromEntity(player);
 
@@ -43,12 +45,16 @@ public class CreditsHandler {
         final ServerWorld world = (ServerWorld) player.getEntityWorld();
         chainMembers.forEach(en -> {
             dimensionChangeBlocked.remove(en);
-            boolean directlyConnected = connected.contains(en);
+            Rope prevRope = store.connected.get(en);
             Entity teleported = MCUtils.teleport(en, world, player.getX(), player.getY(), player.getZ(), flags, player.yaw, player.pitch);
             if (!(teleported instanceof LivingEntity)) return;
 
             LivingEntity living = (LivingEntity) teleported;
-            if (directlyConnected) node.connectWith(living);
+            if (prevRope != null) {
+                node.connectWith(living);
+                Rope rope = node.getRopeConnection(living);
+                if (rope != null) rope.setLength(prevRope.getLength()); // restore rope length
+            }
         });
 
         chained.remove(uuid);

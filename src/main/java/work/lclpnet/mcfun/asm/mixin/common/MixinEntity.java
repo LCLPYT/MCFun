@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import work.lclpnet.mcfun.util.CreditsHandler;
 
 import static work.lclpnet.mcfun.asm.InstanceMixinHelper.castTo;
+import static work.lclpnet.mcfun.asm.InstanceMixinHelper.isInstance;
 
 @Mixin(Entity.class)
 public class MixinEntity {
@@ -20,6 +21,8 @@ public class MixinEntity {
             cancellable = true
     )
     public void onChangeDimension(ServerWorld destination, CallbackInfoReturnable<Entity> cir) {
+        if (!isInstance(this, LivingEntity.class)) return;
+
         LivingEntity self = castTo(this, LivingEntity.class);
         if (CreditsHandler.isDimensionChangeBlocked(self)) {
             cir.setReturnValue(self.world instanceof ServerWorld && !self.removed ? self : null);
