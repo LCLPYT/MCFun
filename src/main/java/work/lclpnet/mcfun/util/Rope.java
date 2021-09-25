@@ -2,10 +2,15 @@ package work.lclpnet.mcfun.util;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
 import org.jetbrains.annotations.Nullable;
+import work.lclpnet.mcfun.asm.type.IRopeNode;
 
+import javax.annotation.Nonnull;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class Rope {
@@ -82,6 +87,32 @@ public class Rope {
     public static Rope decodeFrom(PacketByteBuf buffer) {
         float length = buffer.readFloat();
         return new Rope(length);
+    }
+
+    @Nonnull
+    public static Set<LivingEntity> getAllMembersInChainExceptSelfOf(LivingEntity entity) {
+        Set<LivingEntity> members = new HashSet<>();
+        recurseMembers(members, entity);
+        members.remove(entity);
+        return members;
+    }
+
+    @Nonnull
+    public static Set<LivingEntity> getAllMembersInChainOf(LivingEntity entity) {
+        Set<LivingEntity> members = new HashSet<>();
+        recurseMembers(members, entity);
+        return members;
+    }
+
+    private static void recurseMembers(Set<LivingEntity> members, LivingEntity entity) {
+        members.add(entity);
+
+        Set<LivingEntity> chained = IRopeNode.fromEntity(entity).getRopeConnectedEntities();
+        if (chained == null || chained.isEmpty()) return;
+
+        chained.stream()
+                .filter(en -> !members.contains(en))
+                .forEach(en -> recurseMembers(members, en));
     }
 
 }

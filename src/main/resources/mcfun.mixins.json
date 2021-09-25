@@ -4,8 +4,11 @@
   "package": "work.lclpnet.mcfun.asm.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "common.MixinEntity",
     "common.MixinEntityTrackerEntry",
-    "common.MixinLivingEntity"
+    "common.MixinLivingEntity",
+    "common.MixinPlayerManager",
+    "common.MixinServerPlayerEntity"
   ],
   "client": [
     "client.MixinEntityRenderer",
